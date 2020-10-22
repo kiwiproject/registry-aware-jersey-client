@@ -61,7 +61,7 @@ class RegistryAwareClientTest {
 
                 var identifier = ServiceIdentifier.builder()
                         .serviceName("test-service")
-                        .connector(ServiceIdentifier.Connector.APPLICATION)
+                        .connector(Port.PortType.APPLICATION)
                         .build();
 
                 var target = registryAwareClient.targetForService(identifier);
@@ -75,7 +75,7 @@ class RegistryAwareClientTest {
 
                 var identifier = ServiceIdentifier.builder()
                         .serviceName("test-service")
-                        .connector(ServiceIdentifier.Connector.ADMIN)
+                        .connector(Port.PortType.ADMIN)
                         .build();
 
                 var target = registryAwareClient.targetForService(identifier);
@@ -89,12 +89,12 @@ class RegistryAwareClientTest {
 
                 var identifier = ServiceIdentifier.builder()
                         .serviceName("test-service")
-                        .connector(ServiceIdentifier.Connector.ADMIN)
+                        .connector(Port.PortType.ADMIN)
                         .build();
 
                 assertThatThrownBy(() -> registryAwareClient.targetForService(identifier))
                         .isInstanceOf(RegistryAwareClient.MissingServiceRuntimeException.class)
-                        .hasMessage("No service instances found with name test-service, preferred version <latest>, min version <none>");
+                        .hasMessage("No service instances found with name test-service, preferred version [latest], min version [none]");
             }
         }
 
@@ -121,4 +121,5 @@ class RegistryAwareClientTest {
             assertThat(registryAwareClient.client()).isEqualTo(client);
         }
     }
+
 }

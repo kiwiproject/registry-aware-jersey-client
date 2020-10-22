@@ -14,7 +14,7 @@ import javax.ws.rs.client.WebTarget;
 import java.util.Optional;
 
 /**
- * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)) methods
+ * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)} methods
  * that will find service instances from a registry, e.g. Consul.
  */
 @Slf4j
@@ -74,15 +74,15 @@ public class RegistryAwareClient implements Client {
     }
 
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
-        var path = identifier.getConnector() == ServiceIdentifier.Connector.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
-        return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), Port.PortType.valueOf(identifier.getConnector().name()), path);
+        var path = identifier.getConnector() == Port.PortType.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
+        return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
     }
 
     private static MissingServiceRuntimeException newMissingServiceRuntimeException(ServiceIdentifier identifier) {
         var message = f("No service instances found with name {}, preferred version {}, min version {}",
                 identifier.getServiceName(),
-                Optional.ofNullable(identifier.getPreferredVersion()).orElse("<latest>"),
-                Optional.ofNullable(identifier.getMinimumVersion()).orElse("<none>")
+                Optional.ofNullable(identifier.getPreferredVersion()).orElse("[latest]"),
+                Optional.ofNullable(identifier.getMinimumVersion()).orElse("[none]")
         );
 
         return new MissingServiceRuntimeException(message);

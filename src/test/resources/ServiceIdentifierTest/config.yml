@@ -1,0 +1,7 @@
+---
+serviceName: "config-test-service"
+preferredVersion: "42.0.1"
+minimumVersion: "42.0.0"
+connector: "ADMIN"
+connectTimeout: "5ms"
+readTimeout: "10ms"
