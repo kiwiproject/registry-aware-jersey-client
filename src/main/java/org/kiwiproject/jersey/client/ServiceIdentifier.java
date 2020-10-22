@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.util.Duration;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.Value;
 import lombok.With;
 import org.kiwiproject.registry.model.Port;
@@ -16,7 +15,6 @@ import java.util.Optional;
 /**
  * Service definition used for the client connection
  */
-@Getter
 @Value
 public class ServiceIdentifier {
 
