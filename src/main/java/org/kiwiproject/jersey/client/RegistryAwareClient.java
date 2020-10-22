@@ -14,16 +14,11 @@ import javax.ws.rs.client.WebTarget;
 import java.util.Optional;
 
 /**
- * An extension of the JAX-RS Wink Client) interface that provides additional {@code target(...)) methods
+ * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)) methods
  * that will find service instances from a registry, e.g. Consul.
  */
-@SuppressWarnings("WeakerAccess")
 @Slf4j
 public class RegistryAwareClient implements Client {
-
-    // Suppress "URIs should not be hardcoded" since this is just a part of the path, and its our standard status path
-    @SuppressWarnings("java:S1075")
-    private static final String STATUS_URL_PATH = "/ping";
 
     @Delegate
     private final Client client;
