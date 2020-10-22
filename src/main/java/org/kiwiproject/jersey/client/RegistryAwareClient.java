@@ -49,7 +49,7 @@ public class RegistryAwareClient implements Client {
      * @return a {@link WebTarget} for a randomly selected service instance
      */
     public WebTarget targetForService(String serviceName) {
-        return targetForService(new ServiceIdentifier(serviceName));
+        return targetForService(ServiceIdentifier.builder().serviceName(serviceName).build());
     }
 
     /**
