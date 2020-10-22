@@ -103,7 +103,6 @@ class RegistryAwareClientTest {
 
             @Test
             void shouldBuildClientFromServiceNameOnly() {
-                // TODO: This is failing because the @Builder.Default isn't working on ServiceIdentifier
                 when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class))).thenReturn(Optional.of(instance));
 
                 var target = registryAwareClient.targetForService("test-service");
