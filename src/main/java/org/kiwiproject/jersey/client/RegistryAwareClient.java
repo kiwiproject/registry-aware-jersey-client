@@ -5,7 +5,9 @@ import static org.kiwiproject.base.KiwiStrings.f;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.registry.client.RegistryClient;
+import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
+import org.kiwiproject.registry.util.ServiceInstancePaths;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
@@ -77,7 +79,8 @@ public class RegistryAwareClient implements Client {
     }
 
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
-        return (identifier.getConnector() == ServiceIdentifier.Connector.ADMIN) ? parseAdminUrl(instance) : instance.getPaths().getHomePagePath();
+        var path = identifier.getConnector() == ServiceIdentifier.Connector.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
+        return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), Port.PortType.valueOf(identifier.getConnector().name()), path);
     }
 
     private static MissingServiceRuntimeException newMissingServiceRuntimeException(ServiceIdentifier identifier) {
@@ -88,12 +91,6 @@ public class RegistryAwareClient implements Client {
         );
 
         return new MissingServiceRuntimeException(message);
-    }
-
-    private static String parseAdminUrl(ServiceInstance instance) {
-        var url = instance.getPaths().getStatusPath();
-        var end = url.lastIndexOf(STATUS_URL_PATH);
-        return url.substring(0, end);
     }
 
     static class MissingServiceRuntimeException extends RuntimeException {

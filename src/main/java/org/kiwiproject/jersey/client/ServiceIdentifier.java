@@ -13,6 +13,7 @@ import java.time.Duration;
  */
 @Getter
 public class ServiceIdentifier {
+    // TODO: Should we just use service-discovery-client's PortType?
     public enum Connector {
         ADMIN, APPLICATION
     }
