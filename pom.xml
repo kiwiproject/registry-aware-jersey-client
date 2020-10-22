@@ -30,6 +30,7 @@
   <properties>
     <!-- Versions for required dependencies -->
     <dropwizard.version>2.0.14</dropwizard.version>
+    <dropwizard-config-providers.version>0.4.0</dropwizard-config-providers.version>
     <jersey.version>2.31</jersey.version>
     <kiwi.version>0.12.0</kiwi.version>
     <service-discovery-client.version>0.4.0</service-discovery-client.version>
@@ -49,6 +50,12 @@
 
   <dependencies>
     <!-- Required dependencies -->
+
+    <dependency>
+      <groupId>org.kiwiproject</groupId>
+      <artifactId>dropwizard-config-providers</artifactId>
+      <version>${dropwizard-config-providers.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>io.dropwizard</groupId>
@@ -82,6 +89,13 @@
     </dependency>
 
     <!-- Provided dependencies -->
+
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+      <version>${jersey.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Test dependencies -->
 

@@ -32,7 +32,7 @@ class ServiceIdentifierTest {
         softly.assertThat(identifier.getMinimumVersion()).isNull();
         softly.assertThat(identifier.getConnector()).isEqualTo(Port.PortType.APPLICATION);
         softly.assertThat(identifier.getConnectTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
-        softly.assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_REQUEST_TIMEOUT);
+        softly.assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
     }
 
     @Test
