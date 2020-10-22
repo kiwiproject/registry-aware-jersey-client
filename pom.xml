@@ -29,7 +29,9 @@
 
   <properties>
     <!-- Versions for required dependencies -->
+    <jersey.version>2.31</jersey.version>
     <kiwi.version>0.12.0</kiwi.version>
+    <service-discovery-client.version>0.4.0</service-discovery-client.version>
 
     <!-- Versions for provided dependencies -->
 
@@ -47,9 +49,21 @@
     <!-- Required dependencies -->
 
     <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.kiwiproject</groupId>
       <artifactId>kiwi</artifactId>
       <version>${kiwi.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kiwiproject</groupId>
+      <artifactId>service-discovery-client</artifactId>
+      <version>${service-discovery-client.version}</version>
     </dependency>
 
     <!-- Provided dependencies -->
