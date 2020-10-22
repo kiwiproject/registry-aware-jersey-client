@@ -29,7 +29,7 @@ public class ServiceIdentifier {
 
     @JsonCreator
     @Builder(toBuilder = true)
-    public ServiceIdentifier(@JsonProperty("serviceName") String serviceName,
+    private ServiceIdentifier(@JsonProperty("serviceName") String serviceName,
                              @JsonProperty("preferredVersion") String preferredVersion,
                              @JsonProperty("minimumVersion") String minimumVersion,
                              @JsonProperty("connector") Port.PortType connector,
