@@ -119,9 +119,9 @@ public class DropwizardManagedClientBuilder {
 
     private JerseyClientConfiguration newDefaultJerseyClientConfiguration() {
         var config = new JerseyClientConfiguration();
-        config.setConnectionRequestTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+        config.setConnectionRequestTimeout(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
         config.setConnectionTimeout(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
-        config.setTimeout(RegistryAwareClientConstants.DEFAULT_SOCKET_TIMEOUT);
+        config.setTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
 
         if (shouldSetupTls()) {
             config.setTlsConfiguration(tlsConfigProvider.getTlsContextConfiguration().toDropwizardTlsConfiguration());
