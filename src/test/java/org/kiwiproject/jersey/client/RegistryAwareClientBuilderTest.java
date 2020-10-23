@@ -151,5 +151,4 @@ class RegistryAwareClientBuilderTest {
         assertThat(internalClient.getConfiguration().isRegistered(MultiPartFeature.class)).isTrue();
     }
 
-    // TODO: Add tests for multipart and registryClient
 }
