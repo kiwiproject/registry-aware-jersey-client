@@ -30,9 +30,9 @@
   <properties>
     <!-- Versions for required dependencies -->
     <dropwizard.version>2.0.14</dropwizard.version>
-    <dropwizard-config-providers.version>0.4.0</dropwizard-config-providers.version>
-    <jersey.version>2.31</jersey.version>
-    <kiwi.version>0.12.0</kiwi.version>
+    <dropwizard-config-providers.version>0.4.1</dropwizard-config-providers.version>
+    <jersey.version>2.32</jersey.version>
+    <kiwi.version>0.13.0</kiwi.version>
     <service-discovery-client.version>0.4.0</service-discovery-client.version>
 
     <!-- Versions for provided dependencies -->
@@ -41,7 +41,7 @@
 
     <!-- Versions for test dependencies -->
     <jackson.version>2.10.5</jackson.version>
-    <kiwi-test.version>0.7.0</kiwi-test.version>
+    <kiwi-test.version>0.8.0</kiwi-test.version>
 
     <!-- Versions for plugins -->
 
@@ -86,6 +86,12 @@
       <groupId>org.kiwiproject</groupId>
       <artifactId>service-discovery-client</artifactId>
       <version>${service-discovery-client.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.kiwiproject</groupId>
+          <artifactId>kiwi</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Provided dependencies -->
@@ -93,6 +99,7 @@
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-client</artifactId>
       <version>${dropwizard.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -108,6 +115,13 @@
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
       <version>${dropwizard.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
