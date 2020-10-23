@@ -43,7 +43,7 @@ public class ServiceIdentifier {
         this.minimumVersion = minimumVersion;
         this.connector = Optional.ofNullable(connector).orElse(Port.PortType.APPLICATION);
         this.connectTimeout = Optional.ofNullable(connectTimeout).orElse(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
-        this.readTimeout = Optional.ofNullable(readTimeout).orElse(RegistryAwareClientConstants.DEFAULT_CONNECT_REQUEST_TIMEOUT);
+        this.readTimeout = Optional.ofNullable(readTimeout).orElse(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
     }
 
 }

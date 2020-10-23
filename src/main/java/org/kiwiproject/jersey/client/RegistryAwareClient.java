@@ -2,6 +2,9 @@ package org.kiwiproject.jersey.client;
 
 import static org.kiwiproject.base.KiwiStrings.f;
 
+import com.google.common.annotations.VisibleForTesting;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.registry.client.RegistryClient;
@@ -23,6 +26,8 @@ public class RegistryAwareClient implements Client {
     @Delegate
     private final Client client;
 
+    @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
     private final RegistryClient registryClient;
 
     public RegistryAwareClient(Client client, RegistryClient registryClient) {
