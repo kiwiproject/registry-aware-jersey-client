@@ -5,8 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.mock;
 
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
+import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
@@ -128,6 +132,23 @@ class RegistryAwareClientBuilderTest {
         client = builder.tlsConfigProvider(provider).build();
 
         assertThat(client.getSslContext()).isNotNull();
+    }
+
+    @Test
+    void shouldAcceptGivenRegistryClient() {
+        var registryClient = mock(RegistryClient.class);
+
+        client = builder.registryClient(registryClient).build();
+
+        assertThat(client.getRegistryClient()).isSameAs(registryClient);
+    }
+
+    @Test
+    void shouldRegisterMultipartFeatureWhenRequested() {
+        client = builder.multipart().build();
+
+        JerseyClient internalClient = (JerseyClient) client.client();
+        assertThat(internalClient.getConfiguration().isRegistered(MultiPartFeature.class)).isTrue();
     }
 
     // TODO: Add tests for multipart and registryClient
