@@ -65,6 +65,12 @@ class DropwizardManagedClientsTest {
             assertThat(config.getConnectionRequestTimeout().toMilliseconds())
                     .isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT_MILLIS);
         }
+
+        @Test
+        void shouldSetConnectionTimeout() {
+            assertThat(config.getConnectionTimeout().toMilliseconds())
+                    .isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT_MILLIS);
+        }
     }
 
 }
