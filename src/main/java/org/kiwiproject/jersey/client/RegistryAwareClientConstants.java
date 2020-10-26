@@ -9,6 +9,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class RegistryAwareClientConstants {
 
+    public static final int DEFAULT_CONNECTION_POOL_TIMEOUT_MILLIS = 5_000;
+    public static final Duration DEFAULT_CONNECTION_POOL_TIMEOUT = Duration.milliseconds(DEFAULT_CONNECTION_POOL_TIMEOUT_MILLIS);
+
     public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 5_000;
     public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.milliseconds(DEFAULT_CONNECT_TIMEOUT_MILLIS);
 

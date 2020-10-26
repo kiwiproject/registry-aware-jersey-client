@@ -96,8 +96,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         setReadTimeoutIfNotConfigured(configPropertyNames);
 
         if (!sslContextWasSetOnThis) {
-            LOG.info("No SSLContext provided; using default TlsConfigProvider to try to provide context");
-            tlsConfigProvider(TlsConfigProvider.builder().build());
+            LOG.info("No SSLContext provided; this client will use system default TLS via SSLConnectionSocketFactory.getSocketFactory()");
         }
 
         return new RegistryAwareClient(jerseyClientBuilder.build(), registryClient);

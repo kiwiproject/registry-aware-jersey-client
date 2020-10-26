@@ -30,18 +30,20 @@
   <properties>
     <!-- Versions for required dependencies -->
     <dropwizard.version>2.0.14</dropwizard.version>
-    <dropwizard-config-providers.version>0.4.0</dropwizard-config-providers.version>
-    <jersey.version>2.31</jersey.version>
-    <kiwi.version>0.12.0</kiwi.version>
+    <dropwizard-config-providers.version>0.4.2</dropwizard-config-providers.version>
+    <jersey.version>2.32</jersey.version>
+    <kiwi.version>0.13.0</kiwi.version>
     <service-discovery-client.version>0.4.0</service-discovery-client.version>
 
     <!-- Versions for provided dependencies -->
+    <hibernate-validator.version>6.1.6.Final</hibernate-validator.version>
+    <metrics-servlets.version>4.1.14</metrics-servlets.version>
 
     <!-- Versions for optional dependencies -->
 
     <!-- Versions for test dependencies -->
     <jackson.version>2.10.5</jackson.version>
-    <kiwi-test.version>0.7.0</kiwi-test.version>
+    <kiwi-test.version>0.8.0</kiwi-test.version>
 
     <!-- Versions for plugins -->
 
@@ -61,13 +63,6 @@
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-util</artifactId>
       <version>${dropwizard.version}</version>
-      <exclusions>
-        <!-- TODO: ignore guava here until kiwi/kiwi-test upgrade to DW 2.0.14 -->
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -86,9 +81,91 @@
       <groupId>org.kiwiproject</groupId>
       <artifactId>service-discovery-client</artifactId>
       <version>${service-discovery-client.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.kiwiproject</groupId>
+          <artifactId>kiwi</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Provided dependencies -->
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-client</artifactId>
+      <version>${dropwizard.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate.validator</groupId>
+          <artifactId>hibernate-validator</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-jackson</artifactId>
+      <version>${dropwizard.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>checker-qual</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>joda-time</groupId>
+          <artifactId>joda-time</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>${hibernate-validator.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml</groupId>
+          <artifactId>classmate</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.connectors</groupId>
+      <artifactId>jersey-apache-connector</artifactId>
+      <version>${jersey.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <version>${jersey.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
@@ -97,7 +174,37 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-servlets</artifactId>
+      <version>${metrics-servlets.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <!-- Test dependencies -->
+
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-testing</artifactId>
+      <version>${dropwizard.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.servlet</groupId>
+          <artifactId>jakarta.servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>org.kiwiproject</groupId>
@@ -118,6 +225,23 @@
       <artifactId>jackson-dataformat-yaml</artifactId>
       <version>${jackson.version}</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <version>${jackson.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.activation</groupId>
+          <artifactId>jakarta.activation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.xml.bind</groupId>
+          <artifactId>jakarta.xml.bind-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
   </dependencies>
