@@ -83,7 +83,6 @@ class DropwizardManagedClientBuilderTest {
                     .jerseyClientConfiguration(config)
                     .buildManagedJerseyClient();
 
-            // TODO: Need to figure out a way to verify that the config I provided was used
             assertThat(client).isInstanceOf(Client.class);
         }
 
@@ -95,7 +94,6 @@ class DropwizardManagedClientBuilderTest {
                     .withoutTls()
                     .buildManagedJerseyClient();
 
-            // TODO: Need to figure out a way to verify that TLS was not setup
             assertThat(client).isInstanceOf(Client.class);
         }
 
@@ -106,7 +104,6 @@ class DropwizardManagedClientBuilderTest {
                     .environment(CLIENT_EXTENSION.getEnvironment())
                     .buildManagedJerseyClient();
 
-            // TODO: Need to figure out a way to verify that TLS was not setup
             assertThat(client).isInstanceOf(Client.class);
         }
 
@@ -118,7 +115,6 @@ class DropwizardManagedClientBuilderTest {
                     .tlsConfigProvider(TlsConfigProvider.builder().build())
                     .buildManagedJerseyClient();
 
-            // TODO: Need to figure out a way to verify that TLS was not setup
             assertThat(client).isInstanceOf(Client.class);
         }
 
@@ -139,7 +135,6 @@ class DropwizardManagedClientBuilderTest {
                     .tlsConfigProvider(tlsConfigProvider)
                     .buildManagedJerseyClient();
 
-            // TODO: Need to figure out a way to verify that TLS was not setup
             assertThat(client).isInstanceOf(Client.class);
         }
     }
