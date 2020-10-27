@@ -38,6 +38,8 @@ public class RegistryAwareClient implements Client {
     /**
      * Return the underlying "raw" JAX-RS {@link Client} instance. Generally won't be needed but this provides an
      * "escape hatch" if it is needed for some reason. Use wisely, sparingly, or not at all...
+     *
+     * @return the underlying "raw" JAX-RS {@link Client}
      */
     public Client client() {
         return client;
@@ -55,7 +57,7 @@ public class RegistryAwareClient implements Client {
     }
 
     /**
-     * Provide a {@link WebTarget) by looking up a service in the registry using the given service identifier.
+     * Provide a {@link WebTarget} by looking up a service in the registry using the given service identifier.
      * If more than one instance is found, then one of them is randomly chosen.
      *
      * @param identifier uniquely identifies the service
