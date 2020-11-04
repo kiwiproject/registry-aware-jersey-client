@@ -29,7 +29,7 @@
 
   <properties>
     <!-- Versions for required dependencies -->
-    <dropwizard.version>2.0.14</dropwizard.version>
+    <dropwizard.version>2.0.15</dropwizard.version>
     <dropwizard-config-providers.version>0.4.2</dropwizard-config-providers.version>
     <jersey.version>2.32</jersey.version>
     <kiwi.version>0.13.0</kiwi.version>
