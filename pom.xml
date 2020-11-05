@@ -38,6 +38,7 @@
     <!-- Versions for provided dependencies -->
     <hibernate-validator.version>6.1.6.Final</hibernate-validator.version>
     <metrics-servlets.version>4.1.14</metrics-servlets.version>
+    <metrics-jetty9>4.1.14</metrics-jetty9>
 
     <!-- Versions for optional dependencies -->
 
@@ -172,6 +173,19 @@
       <artifactId>jersey-media-multipart</artifactId>
       <version>${jersey.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jetty9</artifactId>
+      <version>${metrics-jetty9}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
