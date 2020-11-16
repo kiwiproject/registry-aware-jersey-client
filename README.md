@@ -1,5 +1,5 @@
 ### Registry Aware Jersey Client
-[![Build Status](https://travis-ci.com/kiwiproject/registry-aware-jersey-client.svg?branch=master)](https://travis-ci.com/kiwiproject/registry-aware-jersey-client)
+[![Build](https://github.com/kiwiproject/registry-aware-jersey-client/workflows/build/badge.svg)](https://github.com/kiwiproject/registry-aware-jersey-client/actions?query=workflow%3Abuild)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kiwiproject_registry-aware-jersey-client&metric=alert_status)](https://sonarcloud.io/dashboard?id=kiwiproject_registry-aware-jersey-client)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=kiwiproject_registry-aware-jersey-client&metric=coverage)](https://sonarcloud.io/dashboard?id=kiwiproject_registry-aware-jersey-client)
 [![javadoc](https://javadoc.io/badge2/org.kiwiproject/registry-aware-jersey-client/javadoc.svg)](https://javadoc.io/doc/org.kiwiproject/registry-aware-jersey-client)
@@ -15,7 +15,7 @@ Extensions to Jersey Client providing awareness of services registered in a serv
 <dependency>
     <groupId>org.kiwiproject</groupId>
     <artifactId>registry-aware-jersey-client</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
