@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.kiwiproject</groupId>
     <artifactId>kiwi-parent</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
   </parent>
 
   <artifactId>registry-aware-jersey-client</artifactId>
@@ -30,10 +30,10 @@
   <properties>
     <!-- Versions for required dependencies -->
     <dropwizard.version>2.0.15</dropwizard.version>
-    <dropwizard-config-providers.version>0.6.0</dropwizard-config-providers.version>
+    <dropwizard-config-providers.version>0.7.0</dropwizard-config-providers.version>
     <jersey.version>2.32</jersey.version>
-    <kiwi.version>0.15.0</kiwi.version>
-    <service-discovery-client.version>0.7.0</service-discovery-client.version>
+    <kiwi.version>0.16.0</kiwi.version>
+    <service-discovery-client.version>0.8.0</service-discovery-client.version>
 
     <!-- Versions for provided dependencies -->
     <hibernate-validator.version>6.1.6.Final</hibernate-validator.version>
@@ -44,7 +44,7 @@
 
     <!-- Versions for test dependencies -->
     <jackson.version>2.10.5</jackson.version>
-    <kiwi-test.version>0.10.0</kiwi-test.version>
+    <kiwi-test.version>0.11.0</kiwi-test.version>
 
     <!-- Versions for plugins -->
 
