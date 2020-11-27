@@ -29,22 +29,22 @@
 
   <properties>
     <!-- Versions for required dependencies -->
-    <dropwizard.version>2.0.15</dropwizard.version>
-    <dropwizard-config-providers.version>0.7.0</dropwizard-config-providers.version>
+    <dropwizard.version>2.0.16</dropwizard.version>
+    <dropwizard-config-providers.version>0.8.0</dropwizard-config-providers.version>
     <jersey.version>2.32</jersey.version>
-    <kiwi.version>0.16.0</kiwi.version>
-    <service-discovery-client.version>0.8.0</service-discovery-client.version>
+    <kiwi.version>0.17.0</kiwi.version>
+    <service-discovery-client.version>0.9.0</service-discovery-client.version>
 
     <!-- Versions for provided dependencies -->
     <hibernate-validator.version>6.1.6.Final</hibernate-validator.version>
-    <metrics-servlets.version>4.1.14</metrics-servlets.version>
-    <metrics-jetty9>4.1.14</metrics-jetty9>
+    <metrics-servlets.version>4.1.16</metrics-servlets.version>
+    <metrics-jetty9>4.1.16</metrics-jetty9>
 
     <!-- Versions for optional dependencies -->
 
     <!-- Versions for test dependencies -->
     <jackson.version>2.10.5</jackson.version>
-    <kiwi-test.version>0.11.0</kiwi-test.version>
+    <kiwi-test.version>0.12.0</kiwi-test.version>
 
     <!-- Versions for plugins -->
 
