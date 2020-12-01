@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -93,7 +94,7 @@ class RegistryAwareClientTest {
                         .build();
 
                 assertThatThrownBy(() -> registryAwareClient.targetForService(identifier))
-                        .isInstanceOf(RegistryAwareClient.MissingServiceRuntimeException.class)
+                        .isInstanceOf(MissingServiceRuntimeException.class)
                         .hasMessage("No service instances found with name test-service, preferred version [latest], min version [none]");
             }
         }

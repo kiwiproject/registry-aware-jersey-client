@@ -1,6 +1,6 @@
 package org.kiwiproject.jersey.client;
 
-import static org.kiwiproject.base.KiwiStrings.f;
+import static org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException.newMissingServiceRuntimeException;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
@@ -14,7 +14,6 @@ import org.kiwiproject.registry.util.ServiceInstancePaths;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
-import java.util.Optional;
 
 /**
  * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)} methods
@@ -85,19 +84,4 @@ public class RegistryAwareClient implements Client {
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
     }
 
-    private static MissingServiceRuntimeException newMissingServiceRuntimeException(ServiceIdentifier identifier) {
-        var message = f("No service instances found with name {}, preferred version {}, min version {}",
-                identifier.getServiceName(),
-                Optional.ofNullable(identifier.getPreferredVersion()).orElse("[latest]"),
-                Optional.ofNullable(identifier.getMinimumVersion()).orElse("[none]")
-        );
-
-        return new MissingServiceRuntimeException(message);
-    }
-
-    static class MissingServiceRuntimeException extends RuntimeException {
-        public MissingServiceRuntimeException(String message) {
-            super(message);
-        }
-    }
 }
