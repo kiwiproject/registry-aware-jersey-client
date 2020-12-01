@@ -46,4 +46,13 @@ public class ServiceIdentifier {
         this.readTimeout = Optional.ofNullable(readTimeout).orElse(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
     }
 
+    /**
+     * Creates a copy of {@code original} without modifications.
+     *
+     * @param original the original {@link ServiceIdentifier} to copy
+     * @return a new copied {@link ServiceIdentifier}
+     */
+    public static ServiceIdentifier copyOf(ServiceIdentifier original) {
+        return original.toBuilder().build();
+    }
 }
