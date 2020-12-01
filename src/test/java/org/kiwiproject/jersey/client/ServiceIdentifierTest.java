@@ -7,6 +7,7 @@ import io.dropwizard.util.Duration;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kiwiproject.registry.model.Port;
@@ -18,7 +19,9 @@ class ServiceIdentifierTest {
 
     @Test
     void shouldRequireServiceNameDuringBuilder() {
-        assertThatThrownBy(() -> ServiceIdentifier.builder().build())
+        var builder = ServiceIdentifier.builder();
+
+        assertThatThrownBy(builder::build)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Service name is required");
     }
@@ -89,5 +92,31 @@ class ServiceIdentifierTest {
         softly.assertThat(identifier.getConnector()).isEqualTo(Port.PortType.ADMIN);
         softly.assertThat(identifier.getConnectTimeout()).isEqualTo(Duration.milliseconds(5));
         softly.assertThat(identifier.getReadTimeout()).isEqualTo(Duration.milliseconds(10));
+    }
+
+    @Nested
+    class CopyOf {
+
+        @Test
+        void shouldReturnANewInstance_WithDataCopied(SoftAssertions softly) {
+            var identifier = ServiceIdentifier.builder()
+                    .serviceName("copy-service")
+                    .preferredVersion("42.0.0")
+                    .minimumVersion("42.0.0")
+                    .connector(Port.PortType.ADMIN)
+                    .connectTimeout(Duration.milliseconds(1))
+                    .readTimeout(Duration.milliseconds(5))
+                    .build();
+
+            var identifierCopy = ServiceIdentifier.copyOf(identifier);
+
+            softly.assertThat(identifierCopy).isNotSameAs(identifier);
+            softly.assertThat(identifierCopy.getServiceName()).isEqualTo("copy-service");
+            softly.assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion());
+            softly.assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion());
+            softly.assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector());
+            softly.assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout());
+            softly.assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout());
+        }
     }
 }
