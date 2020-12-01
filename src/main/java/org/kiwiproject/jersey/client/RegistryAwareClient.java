@@ -1,6 +1,6 @@
 package org.kiwiproject.jersey.client;
 
-import static org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException.newMissingServiceRuntimeException;
+import static org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException.from;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
@@ -74,7 +74,7 @@ public class RegistryAwareClient implements Client {
 
         var uri = registryClient.findServiceInstanceBy(instanceQuery)
                 .map(instance -> buildInstanceUri(identifier, instance))
-                .orElseThrow(() -> newMissingServiceRuntimeException(identifier));
+                .orElseThrow(() -> from(identifier));
 
         return client.target(uri);
     }
