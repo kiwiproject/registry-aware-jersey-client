@@ -1,12 +1,11 @@
 package org.kiwiproject.jersey.client;
 
-import static org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException.from;
-
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
+import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -74,7 +73,7 @@ public class RegistryAwareClient implements Client {
 
         var uri = registryClient.findServiceInstanceBy(instanceQuery)
                 .map(instance -> buildInstanceUri(identifier, instance))
-                .orElseThrow(() -> from(identifier));
+                .orElseThrow(() -> MissingServiceRuntimeException.from(identifier));
 
         return client.target(uri);
     }
