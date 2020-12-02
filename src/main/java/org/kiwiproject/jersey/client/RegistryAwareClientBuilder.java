@@ -22,6 +22,9 @@ import java.util.function.Supplier;
 @Slf4j
 public class RegistryAwareClientBuilder implements ClientBuilder {
 
+    private static final String DEFAULT_TLS_INFO_MESSAGE = "No SSLContext provided; if a connection is made" +
+            " via HTTPS, this client will use system default TLS via SSLConnectionSocketFactory.getSocketFactory()";
+
     private final JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder();
 
     private boolean sslContextWasSetOnThis;
@@ -109,7 +112,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         setNoopHostNameVerifierIfNotSet();
 
         if (!sslContextWasSetOnThis) {
-            LOG.info("No SSLContext provided; this client will use system default TLS via SSLConnectionSocketFactory.getSocketFactory()");
+            LOG.info(DEFAULT_TLS_INFO_MESSAGE);
         }
 
         return new RegistryAwareClient(jerseyClientBuilder.build(), registryClient, headersSupplier);
