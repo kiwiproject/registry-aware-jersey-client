@@ -1,5 +1,7 @@
 package org.kiwiproject.jersey.client;
 
+import static java.util.Objects.nonNull;
+
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +14,11 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)} methods
@@ -28,9 +34,32 @@ public class RegistryAwareClient implements Client {
     @Getter(AccessLevel.PACKAGE)
     private final RegistryClient registryClient;
 
+    /**
+     * Creates a new {@link RegistryAwareClient} with the given {@link Client} and {@link RegistryClient}. This method
+     * will NOT attach any headers to the request automatically.
+     *
+     * @param client            the Jersey client to use
+     * @param registryClient    the registry lookup client
+     */
     public RegistryAwareClient(Client client, RegistryClient registryClient) {
+        this(client, registryClient, null);
+    }
+
+    /**
+     * Creates a new {@link RegistryAwareClient} with the given {@link Client}, {@link RegistryClient}
+     * and {@link Supplier} that will be used to automatically attach request headers.
+     *
+     * @param client            the Jersey client to use
+     * @param registryClient    the registry lookup client
+     * @param headersSupplier   a supplier to retrieve headers to attach to the request
+     */
+    public RegistryAwareClient(Client client, RegistryClient registryClient, Supplier<Map<String, Object>> headersSupplier) {
         this.client = client;
         this.registryClient = registryClient;
+
+        if (nonNull(headersSupplier)) {
+            this.client.register(new AddHeadersOnRequestFilter(headersSupplier));
+        }
     }
 
     /**
@@ -81,6 +110,21 @@ public class RegistryAwareClient implements Client {
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
         var path = identifier.getConnector() == Port.PortType.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
+    }
+
+    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
+
+        private final Supplier<Map<String, Object>> headersSupplier;
+
+        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
+            this.headersSupplier = headersSupplier;
+        }
+
+        @Override
+        public void filter(ClientRequestContext requestContext) {
+            var headers = headersSupplier.get();
+            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
+        }
     }
 
 }
