@@ -47,12 +47,14 @@ public class RegistryAwareClient implements Client {
 
     /**
      * Creates a new {@link RegistryAwareClient} with the given {@link Client}, {@link RegistryClient}
-     * and {@link Supplier} that will be used to automatically attach request headers. If {@code headersSupplier}
-     * is {@code null}, it is ignored.
+     * and {@link Supplier} that will be used to automatically attach request headers to <em>all</em> requests
+     * made by this client.
+     * <p>
+     * If {@code headersSupplier} is {@code null}, it is ignored.
      *
      * @param client          the Jersey client to use
      * @param registryClient  the registry lookup client
-     * @param headersSupplier a supplier of headers to attach to the request, may be {@code null}
+     * @param headersSupplier a supplier of headers to attach to requests, may be {@code null}
      */
     public RegistryAwareClient(Client client,
                                RegistryClient registryClient,
