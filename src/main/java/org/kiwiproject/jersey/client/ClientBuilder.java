@@ -5,6 +5,8 @@ import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Configure and create {@link RegistryAwareClient} instances using a fluent builder interface. Use {@link ClientBuilders}
@@ -16,6 +18,7 @@ public interface ClientBuilder {
 
     /**
      * Enables the multipart feature on the client
+     *
      * @return this builder
      */
     ClientBuilder multipart();
@@ -83,6 +86,15 @@ public interface ClientBuilder {
      * @return this builder
      */
     ClientBuilder registryClient(RegistryClient registryClient);
+
+    /**
+     * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
+     * the built {@link RegistryAwareClient} instance sends.
+     *
+     * @param headersSupplier a {@link Supplier} that creates a header map
+     * @return this builder
+     */
+    ClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier);
 
     /**
      * Builds the {@link RegistryAwareClient} with the configured options

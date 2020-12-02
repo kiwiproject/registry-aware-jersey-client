@@ -13,6 +13,8 @@ import org.kiwiproject.registry.client.RegistryClient;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.util.Collection;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * This class builds {@link RegistryAwareClient} instances using regular JAX-RS APIs.
@@ -25,6 +27,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     private boolean sslContextWasSetOnThis;
     private boolean hostnameVerifierWasSetOnThis;
     private RegistryClient registryClient;
+    private Supplier<Map<String, Object>> headersSupplier;
 
     @Override
     public ClientBuilder multipart() {
@@ -93,6 +96,12 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     }
 
     @Override
+    public ClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier) {
+        this.headersSupplier = headersSupplier;
+        return this;
+    }
+
+    @Override
     public RegistryAwareClient build() {
         var configPropertyNames = jerseyClientBuilder.getConfiguration().getPropertyNames();
         setConnectTimeoutIfNotConfigured(configPropertyNames);
@@ -103,19 +112,23 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
             LOG.info("No SSLContext provided; this client will use system default TLS via SSLConnectionSocketFactory.getSocketFactory()");
         }
 
-        return new RegistryAwareClient(jerseyClientBuilder.build(), registryClient);
+        return new RegistryAwareClient(jerseyClientBuilder.build(), registryClient, headersSupplier);
     }
 
     private void setConnectTimeoutIfNotConfigured(Collection<String> configPropertyNames) {
         if (!configPropertyNames.contains(ClientProperties.CONNECT_TIMEOUT)) {
-            LOG.trace("Connect timeout not configured; setting global default to {}ms", RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT_MILLIS);
+            LOG.trace("Connect timeout not configured; setting global default to {}ms",
+                    RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT_MILLIS);
+
             connectTimeout(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT_MILLIS);
         }
     }
 
     private void setReadTimeoutIfNotConfigured(Collection<String> configPropertyNames) {
         if (!configPropertyNames.contains(ClientProperties.READ_TIMEOUT)) {
-            LOG.trace("Read timeout not configured; setting global default to {}ms", RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT_MILLIS);
+            LOG.trace("Read timeout not configured; setting global default to {}ms",
+                    RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT_MILLIS);
+
             readTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT_MILLIS);
         }
     }
