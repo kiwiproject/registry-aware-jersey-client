@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
 
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -98,6 +99,13 @@ class RegistryAwareClientBuilderTest {
 
         client = builder.hostnameVerifier(verifier).build();
         assertThat(client.getHostnameVerifier()).isSameAs(verifier);
+    }
+
+    @Test
+    void shouldSetNoopHostnameVerifierIfNotConfigured() {
+        client = builder.build();
+
+        assertThat(client.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
     }
 
     @Test

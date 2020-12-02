@@ -3,6 +3,7 @@ package org.kiwiproject.jersey.client;
 import static com.google.common.base.Preconditions.checkState;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -22,6 +23,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     private final JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder();
 
     private boolean sslContextWasSetOnThis;
+    private boolean hostnameVerifierWasSetOnThis;
     private RegistryClient registryClient;
 
     @Override
@@ -55,6 +57,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     @Override
     public ClientBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
         jerseyClientBuilder.hostnameVerifier(hostnameVerifier);
+        hostnameVerifierWasSetOnThis = true;
         return this;
     }
 
@@ -94,6 +97,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         var configPropertyNames = jerseyClientBuilder.getConfiguration().getPropertyNames();
         setConnectTimeoutIfNotConfigured(configPropertyNames);
         setReadTimeoutIfNotConfigured(configPropertyNames);
+        setNoopHostNameVerifierIfNotSet();
 
         if (!sslContextWasSetOnThis) {
             LOG.info("No SSLContext provided; this client will use system default TLS via SSLConnectionSocketFactory.getSocketFactory()");
@@ -113,6 +117,13 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         if (!configPropertyNames.contains(ClientProperties.READ_TIMEOUT)) {
             LOG.trace("Read timeout not configured; setting global default to {}ms", RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT_MILLIS);
             readTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT_MILLIS);
+        }
+    }
+
+    private void setNoopHostNameVerifierIfNotSet() {
+        if (!hostnameVerifierWasSetOnThis) {
+            LOG.warn("A hostname verifier has not been configured. Setting the hostname verifier to NoopHostnameVerifier.");
+            jerseyClientBuilder.hostnameVerifier(new NoopHostnameVerifier());
         }
     }
 }
