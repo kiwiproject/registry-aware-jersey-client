@@ -35,11 +35,10 @@ public class RegistryAwareClient implements Client {
     private final RegistryClient registryClient;
 
     /**
-     * Creates a new {@link RegistryAwareClient} with the given {@link Client} and {@link RegistryClient}. This method
-     * will NOT attach any headers to the request automatically.
+     * Creates a new {@link RegistryAwareClient} with the given {@link Client} and {@link RegistryClient}.
      *
-     * @param client            the Jersey client to use
-     * @param registryClient    the registry lookup client
+     * @param client         the Jersey client to use
+     * @param registryClient the registry lookup client
      */
     public RegistryAwareClient(Client client, RegistryClient registryClient) {
         this(client, registryClient, null);
