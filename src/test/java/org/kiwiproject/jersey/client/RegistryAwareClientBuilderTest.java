@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,11 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
+import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
+import java.util.Map;
 
 @DisplayName("RegistryAwareClientBuilder")
 class RegistryAwareClientBuilderTest {
@@ -90,7 +91,7 @@ class RegistryAwareClientBuilderTest {
 
     @Test
     void shouldAcceptGivenHostnameVerifier() {
-        var verifier = new HostnameVerifier(){
+        var verifier = new HostnameVerifier() {
             @Override
             public boolean verify(String hostname, SSLSession session) {
                 return true;
@@ -155,8 +156,24 @@ class RegistryAwareClientBuilderTest {
     void shouldRegisterMultipartFeatureWhenRequested() {
         client = builder.multipart().build();
 
-        JerseyClient internalClient = (JerseyClient) client.client();
-        assertThat(internalClient.getConfiguration().isRegistered(MultiPartFeature.class)).isTrue();
+        assertThat(isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
     }
 
+    @Test
+    void shouldNotRegisterHeadersSupplierWhenNull() {
+        client = builder.build();
+
+        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
+    }
+
+    @Test
+    void shouldRegisterHeadersSupplierWhenNonNull() {
+        client = builder.headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42")).build();
+
+        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+    }
+
+    private static boolean isFeatureRegistered(RegistryAwareClient client, Class<?> component) {
+        return client.getConfiguration().isRegistered(component);
+    }
 }

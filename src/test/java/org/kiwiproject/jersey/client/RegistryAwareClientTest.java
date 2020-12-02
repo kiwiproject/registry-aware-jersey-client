@@ -19,6 +19,8 @@ import org.kiwiproject.jaxrs.KiwiMultivaluedMaps;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 
@@ -73,7 +75,7 @@ class RegistryAwareClientTest {
                     .serviceName("foo-service")
                     .hostName("localhost")
                     .ports(List.of(
-                            Port.of(baseUri.getPort(), Port.PortType.APPLICATION, Port.Security.NOT_SECURE)
+                            Port.of(baseUri.getPort(), PortType.APPLICATION, Security.NOT_SECURE)
                     ))
                     .paths(ServicePaths.builder().homePagePath(baseUri.getPath()).build())
                     .build();
@@ -103,8 +105,8 @@ class RegistryAwareClientTest {
                     .serviceName("test-service")
                     .hostName("localhost")
                     .ports(List.of(
-                            Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build(),
-                            Port.builder().number(8081).type(Port.PortType.ADMIN).secure(Port.Security.SECURE).build()
+                            Port.builder().number(8080).type(PortType.APPLICATION).secure(Security.SECURE).build(),
+                            Port.builder().number(8081).type(PortType.ADMIN).secure(Security.SECURE).build()
                     ))
                     .paths(ServicePaths.builder().homePagePath("/home").build())
                     .build();
@@ -115,11 +117,12 @@ class RegistryAwareClientTest {
 
             @Test
             void shouldReturnWebTargetWithCorrectBasePathWhenServiceIsFoundAndApplicationConnectionWanted() {
-                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class))).thenReturn(Optional.of(instance));
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.of(instance));
 
                 var identifier = ServiceIdentifier.builder()
                         .serviceName("test-service")
-                        .connector(Port.PortType.APPLICATION)
+                        .connector(PortType.APPLICATION)
                         .build();
 
                 var target = registryAwareClient.targetForService(identifier);
@@ -129,11 +132,12 @@ class RegistryAwareClientTest {
 
             @Test
             void shouldReturnWebTargetWithCorrectBaseAdminPathWhenServiceIsFoundAndAdminConnectionWanted() {
-                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class))).thenReturn(Optional.of(instance));
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.of(instance));
 
                 var identifier = ServiceIdentifier.builder()
                         .serviceName("test-service")
-                        .connector(Port.PortType.ADMIN)
+                        .connector(PortType.ADMIN)
                         .build();
 
                 var target = registryAwareClient.targetForService(identifier);
@@ -143,11 +147,12 @@ class RegistryAwareClientTest {
 
             @Test
             void shouldThrowMissingServiceExceptionWhenServiceNotFound() {
-                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class))).thenReturn(Optional.empty());
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.empty());
 
                 var identifier = ServiceIdentifier.builder()
                         .serviceName("test-service")
-                        .connector(Port.PortType.ADMIN)
+                        .connector(PortType.ADMIN)
                         .build();
 
                 assertThatThrownBy(() -> registryAwareClient.targetForService(identifier))
@@ -161,7 +166,8 @@ class RegistryAwareClientTest {
 
             @Test
             void shouldBuildClientFromServiceNameOnly() {
-                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class))).thenReturn(Optional.of(instance));
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.of(instance));
 
                 var target = registryAwareClient.targetForService("test-service");
 

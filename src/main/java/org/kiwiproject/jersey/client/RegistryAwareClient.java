@@ -13,6 +13,7 @@ import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -46,13 +47,16 @@ public class RegistryAwareClient implements Client {
 
     /**
      * Creates a new {@link RegistryAwareClient} with the given {@link Client}, {@link RegistryClient}
-     * and {@link Supplier} that will be used to automatically attach request headers.
+     * and {@link Supplier} that will be used to automatically attach request headers. If {@code headersSupplier}
+     * is {@code null}, it is ignored.
      *
-     * @param client            the Jersey client to use
-     * @param registryClient    the registry lookup client
-     * @param headersSupplier   a supplier to retrieve headers to attach to the request
+     * @param client          the Jersey client to use
+     * @param registryClient  the registry lookup client
+     * @param headersSupplier a supplier of headers to attach to the request, may be {@code null}
      */
-    public RegistryAwareClient(Client client, RegistryClient registryClient, Supplier<Map<String, Object>> headersSupplier) {
+    public RegistryAwareClient(Client client,
+                               RegistryClient registryClient,
+                               @Nullable Supplier<Map<String, Object>> headersSupplier) {
         this.client = client;
         this.registryClient = registryClient;
 
