@@ -14,6 +14,7 @@ import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.registry.client.RegistryClient;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.client.Client;
 
 /**
@@ -142,13 +143,15 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Creates a new {@link JerseyClientConfiguration} to use as a default that has TLS configured <em>IF</em> the given
-     * provider is not null and can provide.
+     * Creates a new {@link JerseyClientConfiguration} to use as a default that has TLS configured <em>only if</em> the
+     * given provider is not null and can provide.
      *
      * @param tlsConfigProvider a {@link TlsConfigProvider} used to provide TLS settings
      * @return a {@link JerseyClientConfiguration} with defaults set
      */
-    public static JerseyClientConfiguration newDefaultJerseyClientConfiguration(TlsConfigProvider tlsConfigProvider) {
+    public static JerseyClientConfiguration newDefaultJerseyClientConfiguration(
+            @Nullable TlsConfigProvider tlsConfigProvider) {
+
         var config = new JerseyClientConfiguration();
         config.setConnectionRequestTimeout(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
         config.setConnectionTimeout(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
