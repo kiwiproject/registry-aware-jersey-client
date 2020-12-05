@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.yaml.YamlHelper;
 
 @DisplayName("ServiceIdentifier")
@@ -33,7 +33,7 @@ class ServiceIdentifierTest {
         softly.assertThat(identifier.getServiceName()).isEqualTo("test-service");
         softly.assertThat(identifier.getPreferredVersion()).isNull();
         softly.assertThat(identifier.getMinimumVersion()).isNull();
-        softly.assertThat(identifier.getConnector()).isEqualTo(Port.PortType.APPLICATION);
+        softly.assertThat(identifier.getConnector()).isEqualTo(PortType.APPLICATION);
         softly.assertThat(identifier.getConnectTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
         softly.assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
     }
@@ -44,7 +44,7 @@ class ServiceIdentifierTest {
                 .serviceName("copy-service")
                 .preferredVersion("42.0.0")
                 .minimumVersion("42.0.0")
-                .connector(Port.PortType.ADMIN)
+                .connector(PortType.ADMIN)
                 .connectTimeout(Duration.milliseconds(1))
                 .readTimeout(Duration.milliseconds(5))
                 .build();
@@ -65,7 +65,7 @@ class ServiceIdentifierTest {
                 .serviceName("copy-service")
                 .preferredVersion("42.0.0")
                 .minimumVersion("42.0.0")
-                .connector(Port.PortType.ADMIN)
+                .connector(PortType.ADMIN)
                 .connectTimeout(Duration.milliseconds(1))
                 .readTimeout(Duration.milliseconds(5))
                 .build();
@@ -89,7 +89,7 @@ class ServiceIdentifierTest {
         softly.assertThat(identifier.getServiceName()).isEqualTo("config-test-service");
         softly.assertThat(identifier.getPreferredVersion()).isEqualTo("42.0.1");
         softly.assertThat(identifier.getMinimumVersion()).isEqualTo("42.0.0");
-        softly.assertThat(identifier.getConnector()).isEqualTo(Port.PortType.ADMIN);
+        softly.assertThat(identifier.getConnector()).isEqualTo(PortType.ADMIN);
         softly.assertThat(identifier.getConnectTimeout()).isEqualTo(Duration.milliseconds(5));
         softly.assertThat(identifier.getReadTimeout()).isEqualTo(Duration.milliseconds(10));
     }
@@ -103,7 +103,7 @@ class ServiceIdentifierTest {
                     .serviceName("copy-service")
                     .preferredVersion("42.0.0")
                     .minimumVersion("42.0.0")
-                    .connector(Port.PortType.ADMIN)
+                    .connector(PortType.ADMIN)
                     .connectTimeout(Duration.milliseconds(1))
                     .readTimeout(Duration.milliseconds(5))
                     .build();
