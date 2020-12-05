@@ -81,7 +81,7 @@ public class RegistryAwareClient implements Client {
      * Provide a {@link WebTarget} by looking up a service in the registry using the given service name. Finds the latest
      * available version. If more than one instance is found, then one of them is randomly chosen.
      * <p>
-     * Note: The {@link WebTarget} returned will always be setup to access the application port on the service.
+     * Note: The returned {@link WebTarget} will always be set up to access the application port on the service.
      *
      * @param serviceName the service name in the registry
      * @return a {@link WebTarget} for a randomly selected service instance
