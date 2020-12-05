@@ -85,6 +85,7 @@ public class RegistryAwareClient implements Client {
      *
      * @param serviceName the service name in the registry
      * @return a {@link WebTarget} for a randomly selected service instance
+     * @see #targetForService(ServiceIdentifier)
      */
     public WebTarget targetForService(String serviceName) {
         return targetForService(ServiceIdentifier.builder().serviceName(serviceName).build());
