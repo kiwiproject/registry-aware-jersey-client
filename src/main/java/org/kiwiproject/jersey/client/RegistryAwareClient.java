@@ -95,7 +95,7 @@ public class RegistryAwareClient implements Client {
      * If more than one instance is found, then one of them is randomly chosen.
      * <p>
      * Note: By specifying the connector as {@link PortType#ADMIN} in {@code identifier} the {@link WebTarget} will be
-     * setup to access the admin port on the service.
+     * set up to access the admin port on the service.
      *
      * @param identifier uniquely identifies the service
      * @return a {@link WebTarget} for a randomly selected service instance
