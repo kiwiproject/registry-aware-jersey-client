@@ -14,6 +14,7 @@ import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.registry.client.RegistryClient;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.client.Client;
 
 /**
@@ -109,29 +110,13 @@ public class DropwizardManagedClientBuilder {
         checkState(nonNull(environment), "Dropwizard environment must be provided to create managed client");
 
         if (isNull(jerseyClientConfiguration)) {
-            jerseyClientConfiguration(newDefaultJerseyClientConfiguration());
+            var provider = tlsOptedOut ? null : tlsConfigProvider;
+            jerseyClientConfiguration(newDefaultJerseyClientConfiguration(provider));
         }
 
         return new JerseyClientBuilder(environment)
                 .using(jerseyClientConfiguration)
                 .build(clientName);
-    }
-
-    private JerseyClientConfiguration newDefaultJerseyClientConfiguration() {
-        var config = new JerseyClientConfiguration();
-        config.setConnectionRequestTimeout(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
-        config.setConnectionTimeout(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
-        config.setTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
-
-        if (shouldSetupTls()) {
-            config.setTlsConfiguration(tlsConfigProvider.getTlsContextConfiguration().toDropwizardTlsConfiguration());
-        }
-
-        return config;
-    }
-
-    private boolean shouldSetupTls() {
-        return !tlsOptedOut && nonNull(tlsConfigProvider) && tlsConfigProvider.canProvide();
     }
 
     /**
@@ -146,5 +131,36 @@ public class DropwizardManagedClientBuilder {
 
         var jerseyClient = buildManagedJerseyClient();
         return new RegistryAwareClient(jerseyClient, registryClient);
+    }
+
+    /**
+     * Creates a new {@link JerseyClientConfiguration} to use as a default that is <em>NOT</em> configured for TLS.
+     *
+     * @return a {@link JerseyClientConfiguration} with defaults set
+     */
+    public static JerseyClientConfiguration newDefaultJerseyClientConfiguration() {
+        return newDefaultJerseyClientConfiguration(null);
+    }
+
+    /**
+     * Creates a new {@link JerseyClientConfiguration} to use as a default that has TLS configured <em>only if</em> the
+     * given provider is not null and can provide.
+     *
+     * @param tlsConfigProvider a {@link TlsConfigProvider} used to provide TLS settings
+     * @return a {@link JerseyClientConfiguration} with defaults set
+     */
+    public static JerseyClientConfiguration newDefaultJerseyClientConfiguration(
+            @Nullable TlsConfigProvider tlsConfigProvider) {
+
+        var config = new JerseyClientConfiguration();
+        config.setConnectionRequestTimeout(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+        config.setConnectionTimeout(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+        config.setTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+
+        if (nonNull(tlsConfigProvider) && tlsConfigProvider.canProvide()) {
+            config.setTlsConfiguration(tlsConfigProvider.getTlsContextConfiguration().toDropwizardTlsConfiguration());
+        }
+
+        return config;
     }
 }

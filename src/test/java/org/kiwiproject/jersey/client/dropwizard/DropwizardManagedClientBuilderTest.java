@@ -8,6 +8,8 @@ import static org.mockito.Mockito.mock;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
+import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.test.util.Fixtures;
 
@@ -24,9 +27,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.io.File;
 
-@ExtendWith(DropwizardExtensionsSupport.class)
 @DisplayName("DropwizardManagedClientBuilder")
+@ExtendWith(DropwizardExtensionsSupport.class)
+@ExtendWith(SoftAssertionsExtension.class)
 class DropwizardManagedClientBuilderTest {
 
     @Path("/test")
@@ -173,6 +178,66 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedRegistryAwareClient();
 
             assertThat(client).isInstanceOf(RegistryAwareClient.class);
+        }
+    }
+
+    @Nested
+    class NewDefaultJerseyClientConfiguration {
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithoutTLS_WhenProviderNotProvided(SoftAssertions softly) {
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration();
+
+            softly.assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            softly.assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            softly.assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            softly.assertThat(config.getTlsConfiguration()).isNull();
+        }
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithoutTLS_WhenProviderIsNull(SoftAssertions softly) {
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(null);
+
+            softly.assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            softly.assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            softly.assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            softly.assertThat(config.getTlsConfiguration()).isNull();
+        }
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithoutTLS_WhenProviderCannotProvide(SoftAssertions softly) {
+            var provider = TlsConfigProvider.builder().build();
+
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(provider);
+
+            softly.assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            softly.assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            softly.assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            softly.assertThat(config.getTlsConfiguration()).isNull();
+        }
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithTls_WhenProviderCanProvide(SoftAssertions softly) {
+            var keystorePath = Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+            var keystorePassword = "password";
+
+            var tlsConfigProvider = TlsConfigProvider.builder()
+                    .trustStorePathResolverStrategy(FieldResolverStrategy.<String>builder()
+                            .explicitValue(keystorePath)
+                            .build())
+                    .trustStorePasswordResolverStrategy(FieldResolverStrategy.<String>builder()
+                            .explicitValue(keystorePassword)
+                            .build())
+                    .build();
+
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(tlsConfigProvider);
+
+            softly.assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            softly.assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            softly.assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            softly.assertThat(config.getTlsConfiguration()).isNotNull();
+            softly.assertThat(config.getTlsConfiguration().getTrustStorePath()).isEqualTo(new File(keystorePath));
+            softly.assertThat(config.getTlsConfiguration().getTrustStorePassword()).isEqualTo(keystorePassword);
         }
     }
 }
