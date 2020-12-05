@@ -9,7 +9,7 @@ import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
-import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
 
@@ -80,9 +80,12 @@ public class RegistryAwareClient implements Client {
     /**
      * Provide a {@link WebTarget} by looking up a service in the registry using the given service name. Finds the latest
      * available version. If more than one instance is found, then one of them is randomly chosen.
+     * <p>
+     * Note: The returned {@link WebTarget} will always be set up to access the application port on the service.
      *
      * @param serviceName the service name in the registry
      * @return a {@link WebTarget} for a randomly selected service instance
+     * @see #targetForService(ServiceIdentifier)
      */
     public WebTarget targetForService(String serviceName) {
         return targetForService(ServiceIdentifier.builder().serviceName(serviceName).build());
@@ -91,6 +94,9 @@ public class RegistryAwareClient implements Client {
     /**
      * Provide a {@link WebTarget} by looking up a service in the registry using the given service identifier.
      * If more than one instance is found, then one of them is randomly chosen.
+     * <p>
+     * Note: By specifying the connector as {@link PortType#ADMIN} in {@code identifier} the {@link WebTarget} will be
+     * set up to access the admin port on the service.
      *
      * @param identifier uniquely identifies the service
      * @return a {@link WebTarget} for a randomly selected service instance
@@ -113,7 +119,7 @@ public class RegistryAwareClient implements Client {
     }
 
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
-        var path = identifier.getConnector() == Port.PortType.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
+        var path = identifier.getConnector() == PortType.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
     }
 
