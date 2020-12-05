@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
+import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.test.util.Fixtures;
 
@@ -24,6 +25,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.io.File;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 @DisplayName("DropwizardManagedClientBuilder")
@@ -173,6 +175,66 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedRegistryAwareClient();
 
             assertThat(client).isInstanceOf(RegistryAwareClient.class);
+        }
+    }
+
+    @Nested
+    class NewDefaultJerseyClientConfiguration {
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithoutTLS_WhenProviderNotProvided() {
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration();
+
+            assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            assertThat(config.getTlsConfiguration()).isNull();
+        }
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithoutTLS_WhenProviderIsNull() {
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(null);
+
+            assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            assertThat(config.getTlsConfiguration()).isNull();
+        }
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithoutTLS_WhenProviderCannotProvide() {
+            var provider = TlsConfigProvider.builder().build();
+
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(provider);
+
+            assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            assertThat(config.getTlsConfiguration()).isNull();
+        }
+
+        @Test
+        void shouldReturnNewJerseyClientConfiguration_WithTls_WhenProviderCanProvide() {
+            var keystorePath = Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+            var keystorePassword = "password";
+
+            var tlsConfigProvider = TlsConfigProvider.builder()
+                    .trustStorePathResolverStrategy(FieldResolverStrategy.<String>builder()
+                            .explicitValue(keystorePath)
+                            .build())
+                    .trustStorePasswordResolverStrategy(FieldResolverStrategy.<String>builder()
+                            .explicitValue(keystorePassword)
+                            .build())
+                    .build();
+
+            var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(tlsConfigProvider);
+
+            assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT);
+            assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
+            assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+            assertThat(config.getTlsConfiguration()).isNotNull();
+            assertThat(config.getTlsConfiguration().getTrustStorePath()).isEqualTo(new File(keystorePath));
+            assertThat(config.getTlsConfiguration().getTrustStorePassword()).isEqualTo(keystorePassword);
         }
     }
 }
