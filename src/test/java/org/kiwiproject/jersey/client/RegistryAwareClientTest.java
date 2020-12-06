@@ -15,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.kiwiproject.jaxrs.KiwiMultivaluedMaps;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
@@ -88,7 +90,8 @@ class RegistryAwareClientTest {
 
             var response = registryAwareClient.targetForService("foo-service").request().get();
 
-            var bodyMap = response.readEntity(new GenericType<MultivaluedHashMap<String, String>>(){});
+            var bodyMap = response.readEntity(new GenericType<MultivaluedHashMap<String, String>>() {
+            });
             var headerMap = KiwiMultivaluedMaps.toSingleValuedParameterMap(bodyMap);
             assertThat(headerMap).contains(entry("FOO-HEADER", "This-Is-Cool"));
         }
@@ -173,7 +176,24 @@ class RegistryAwareClientTest {
 
                 assertThat(target.getUri()).hasToString("https://localhost:8080/home");
             }
+        }
 
+        @Nested
+        class WithServiceNameAndPortType {
+
+            @ParameterizedTest
+            @CsvSource({
+                    "APPLICATION, https://localhost:8080/home",
+                    "ADMIN, https://localhost:8081/"
+            })
+            void shouldBuildClientForSpecifiedPortType(PortType portType, String expectedUri) {
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.of(instance));
+
+                var target = registryAwareClient.targetForService("test-service", portType);
+
+                assertThat(target.getUri()).hasToString(expectedUri);
+            }
         }
     }
 

@@ -78,17 +78,37 @@ public class RegistryAwareClient implements Client {
     }
 
     /**
-     * Provide a {@link WebTarget} by looking up a service in the registry using the given service name. Finds the latest
-     * available version. If more than one instance is found, then one of them is randomly chosen.
+     * Provide a {@link WebTarget} by looking up a service in the registry using the given service name. Finds the
+     * latest available version. If more than one instance is found, then one of them is randomly chosen.
      * <p>
      * Note: The returned {@link WebTarget} will always be set up to access the application port on the service.
      *
      * @param serviceName the service name in the registry
      * @return a {@link WebTarget} for a randomly selected service instance
+     * @see #targetForService(String, PortType)
      * @see #targetForService(ServiceIdentifier)
      */
     public WebTarget targetForService(String serviceName) {
-        return targetForService(ServiceIdentifier.builder().serviceName(serviceName).build());
+        return targetForService(serviceName, PortType.APPLICATION);
+    }
+
+    /**
+     * Provide a {@link WebTarget} by looking up a service in the registry using the given service name and
+     * {@link PortType} . Finds the latest available version. If more than one instance is found, then one of them
+     * is randomly chosen.
+     *
+     * @param serviceName the service name in the registry
+     * @param portType    the type of port to connect to
+     * @return a {@link WebTarget} for a randomly selected service instance
+     * @see #targetForService(ServiceIdentifier)
+     */
+    public WebTarget targetForService(String serviceName, PortType portType) {
+        var serviceIdentifier = ServiceIdentifier.builder()
+                .serviceName(serviceName)
+                .connector(portType)
+                .build();
+
+        return targetForService(serviceIdentifier);
     }
 
     /**
