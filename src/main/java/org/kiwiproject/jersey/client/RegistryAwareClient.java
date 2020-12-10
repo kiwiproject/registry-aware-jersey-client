@@ -125,9 +125,7 @@ public class RegistryAwareClient implements Client {
      */
     public WebTarget targetForService(ServiceIdentifier originalIdentifier, PortType portType) {
         checkArgumentNotNull(originalIdentifier, "Original ServiceIdentifier must not be null");
-        var serviceIdentifier = originalIdentifier.toBuilder()
-                .connector(portType)
-                .build();
+        var serviceIdentifier = originalIdentifier.withConnector(portType);
 
         return targetForService(serviceIdentifier);
     }
