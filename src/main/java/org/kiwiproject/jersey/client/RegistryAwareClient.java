@@ -171,7 +171,7 @@ public class RegistryAwareClient implements Client {
      * @return a {@link WebTarget} for a randomly selected service instance
      */
     public WebTarget targetForService(ServiceIdentifier original, PortType portType, Function<ServiceInstance, String> pathResolver) {
-        var identifier = original.toBuilder().connector(portType).build();
+        var identifier = original.withConnector(portType);
 
         var instanceQuery = RegistryClient.InstanceQuery.builder()
                 .serviceName(identifier.getServiceName())
