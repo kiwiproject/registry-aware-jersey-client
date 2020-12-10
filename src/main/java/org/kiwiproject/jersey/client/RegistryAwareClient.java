@@ -1,6 +1,7 @@
 package org.kiwiproject.jersey.client;
 
 import static java.util.Objects.nonNull;
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
@@ -19,6 +20,7 @@ import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -112,6 +114,25 @@ public class RegistryAwareClient implements Client {
     }
 
     /**
+     * Provide a {@link WebTarget} by looking up a service in the registry using the given {@link ServiceIdentifier} and
+     * {@link org.kiwiproject.registry.model.Port.PortType}. Finds the latest available version. If more than one
+     * instance is found, then one of them is randomly chosen.
+     *
+     * @param originalIdentifier    the original identifier that will be adjusted with the given port type
+     * @param portType              the port type to use for the {@link WebTarget}
+     * @return a {@link WebTarget} for a randomly selected service instance
+     * @see #targetForService(ServiceIdentifier)
+     */
+    public WebTarget targetForService(ServiceIdentifier originalIdentifier, PortType portType) {
+        checkArgumentNotNull(originalIdentifier, "Original ServiceIdentifier must not be null");
+        var serviceIdentifier = originalIdentifier.toBuilder()
+                .connector(portType)
+                .build();
+
+        return targetForService(serviceIdentifier);
+    }
+
+    /**
      * Provide a {@link WebTarget} by looking up a service in the registry using the given service identifier.
      * If more than one instance is found, then one of them is randomly chosen.
      * <p>
@@ -136,6 +157,40 @@ public class RegistryAwareClient implements Client {
                 .orElseThrow(() -> MissingServiceRuntimeException.from(identifier));
 
         return client.target(uri);
+    }
+
+    /**
+     * Provide a {@link WebTarget} by looking up a service in the registry using the given service identifier.
+     * If more than one instance is found, then one of them is randomly chosen. The given {@link Function} will allow
+     * a path to be chosen from the {@link ServiceInstance} and added to the {@link WebTarget} path.
+     * <p>
+     * Note: By specifying the connector as {@link PortType#ADMIN} in {@code identifier} the {@link WebTarget} will be
+     * set up to access the admin port on the service.
+     *
+     * @param original      the original {@link ServiceIdentifier} used to lookup a service
+     * @param portType      the port type (APPLICATION or ADMIN) to use for the WebTarget port
+     * @param pathResolver  a function to resolve the path to use from the ServiceInstance
+     * @return a {@link WebTarget} for a randomly selected service instance
+     */
+    public WebTarget targetForService(ServiceIdentifier original, PortType portType, Function<ServiceInstance, String> pathResolver) {
+        var identifier = original.toBuilder().connector(portType).build();
+
+        var instanceQuery = RegistryClient.InstanceQuery.builder()
+                .serviceName(identifier.getServiceName())
+                .preferredVersion(identifier.getPreferredVersion())
+                .minimumVersion(identifier.getMinimumVersion())
+                .build();
+
+        LOG.trace("Find instances with name {}, preferredVersion {}, minimumVersion {}",
+                instanceQuery.getServiceName(), instanceQuery.getPreferredVersion(), instanceQuery.getMinimumVersion());
+
+        var serviceInstance = registryClient.findServiceInstanceBy(instanceQuery)
+                .orElseThrow(() -> MissingServiceRuntimeException.from(identifier));
+
+        var uri = buildInstanceUri(identifier, serviceInstance);
+
+        return client.target(uri)
+                .path(pathResolver.apply(serviceInstance));
     }
 
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
