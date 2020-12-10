@@ -161,9 +161,6 @@ public class RegistryAwareClient implements Client {
      * Provide a {@link WebTarget} by looking up a service in the registry using the given service identifier.
      * If more than one instance is found, then one of them is randomly chosen. The given {@code pathResolver} function allows
      * a path to be chosen from the {@link ServiceInstance} and added to the {@link WebTarget} path.
-     * <p>
-     * Note: By specifying the connector as {@link PortType#ADMIN} in {@code identifier} the {@link WebTarget} will be
-     * set up to access the admin port on the service.
      *
      * @param original      the original {@link ServiceIdentifier} used to lookup a service
      * @param portType      the port type (APPLICATION or ADMIN) to use for the WebTarget port
