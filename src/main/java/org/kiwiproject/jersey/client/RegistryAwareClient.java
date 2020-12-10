@@ -115,7 +115,7 @@ public class RegistryAwareClient implements Client {
 
     /**
      * Provide a {@link WebTarget} by looking up a service in the registry using the given {@link ServiceIdentifier} and
-     * {@link org.kiwiproject.registry.model.Port.PortType}. Finds the latest available version. If more than one
+     * {@link org.kiwiproject.registry.model.Port.PortType PortType}. Finds the latest available version. If more than one
      * instance is found, then one of them is randomly chosen.
      *
      * @param originalIdentifier    the original identifier that will be adjusted with the given port type
