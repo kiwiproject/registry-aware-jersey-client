@@ -195,6 +195,41 @@ class RegistryAwareClientTest {
                 assertThat(target.getUri()).hasToString(expectedUri);
             }
         }
+
+        @Nested
+        class WithServiceIdentifierAndPortType {
+
+            @ParameterizedTest
+            @CsvSource({
+                    "APPLICATION, https://localhost:8080/home",
+                    "ADMIN, https://localhost:8081/"
+            })
+            void shouldBuildClientForSpecifiedPortType(PortType portType, String expectedUri) {
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.of(instance));
+
+                var identifier = ServiceIdentifier.builder().serviceName("test-service").build();
+                var target = registryAwareClient.targetForService(identifier, portType);
+
+                assertThat(target.getUri()).hasToString(expectedUri);
+            }
+        }
+
+        @Nested
+        class WithServiceIdentifierAndPortTypeAndPathResolver {
+
+            @Test
+            void shouldBuildClientForWith() {
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.of(instance));
+
+                var identifier = ServiceIdentifier.builder().serviceName("test-service").build();
+                var target = registryAwareClient.targetForService(identifier, PortType.ADMIN,
+                        instance -> instance.getPaths().getStatusPath());
+
+                assertThat(target.getUri()).hasToString("https://localhost:8081/ping");
+            }
+        }
     }
 
     @Nested
