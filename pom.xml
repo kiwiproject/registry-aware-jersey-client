@@ -87,12 +87,6 @@
       <groupId>org.kiwiproject</groupId>
       <artifactId>service-discovery-client</artifactId>
       <version>${service-discovery-client.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.kiwiproject</groupId>
-          <artifactId>kiwi</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Provided dependencies -->
@@ -143,6 +137,23 @@
         <exclusion>
           <groupId>com.fasterxml</groupId>
           <artifactId>classmate</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <version>${jackson.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.activation</groupId>
+          <artifactId>jakarta.activation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.xml.bind</groupId>
+          <artifactId>jakarta.xml.bind-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -244,23 +255,6 @@
       <artifactId>jackson-dataformat-yaml</artifactId>
       <version>${jackson.version}</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <version>${jackson.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>jakarta.activation</groupId>
-          <artifactId>jakarta.activation-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>jakarta.xml.bind</groupId>
-          <artifactId>jakarta.xml.bind-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
   </dependencies>
