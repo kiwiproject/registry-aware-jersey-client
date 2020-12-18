@@ -118,7 +118,7 @@ class RegistryAwareClientBuilderTest {
 
     @Test
     void shouldAcceptGivenSSLContext() {
-        var path = Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+        var path = getUnitTestKeyStorePath();
         var sslContext = TlsContextConfiguration.builder()
                 .trustStorePath(path)
                 .trustStorePassword("password")
@@ -132,7 +132,7 @@ class RegistryAwareClientBuilderTest {
 
     @Test
     void shouldBuildContextFromTlsConfigProviderIfGiven() {
-        var path = Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+        var path = getUnitTestKeyStorePath();
         var provider = TlsConfigProvider.builder()
                 .trustStorePathResolverStrategy(FieldResolverStrategy.<String>builder().explicitValue(path).build())
                 .trustStorePasswordResolverStrategy(FieldResolverStrategy.<String>builder().explicitValue("password").build())
@@ -141,6 +141,10 @@ class RegistryAwareClientBuilderTest {
         client = builder.tlsConfigProvider(provider).build();
 
         assertThat(client.getSslContext()).isNotNull();
+    }
+
+    private static String getUnitTestKeyStorePath() {
+        return Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
     }
 
     @Test

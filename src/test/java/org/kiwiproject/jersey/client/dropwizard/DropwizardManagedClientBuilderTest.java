@@ -2,6 +2,7 @@ package org.kiwiproject.jersey.client.dropwizard;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
@@ -125,9 +127,10 @@ class DropwizardManagedClientBuilderTest {
 
         @Test
         void shouldSetupDefaultJerseyClientConfigurationWithTls() {
+            var keyStorePath = getUnitTestKeyStorePath();
             var tlsConfigProvider = TlsConfigProvider.builder()
                     .trustStorePathResolverStrategy(FieldResolverStrategy.<String>builder()
-                            .explicitValue(Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString())
+                            .explicitValue(keyStorePath)
                             .build())
                     .trustStorePasswordResolverStrategy(FieldResolverStrategy.<String>builder()
                             .explicitValue("password")
@@ -138,6 +141,35 @@ class DropwizardManagedClientBuilderTest {
                     .clientName(CLIENT_NAME)
                     .environment(CLIENT_EXTENSION.getEnvironment())
                     .tlsConfigProvider(tlsConfigProvider)
+                    .buildManagedJerseyClient();
+
+            assertThat(client).isInstanceOf(Client.class);
+        }
+
+        @Test
+        void shouldNotAllowNullTlsContextConfiguration() {
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() ->
+                            new DropwizardManagedClientBuilder()
+                                    .clientName(CLIENT_NAME)
+                                    .environment(CLIENT_EXTENSION.getEnvironment())
+                                    .tlsContextConfiguration(null)
+                                    .buildManagedJerseyClient())
+                    .withMessage("tlsConfig must not be null");
+        }
+
+        @Test
+        void shouldSetupDefaultJerseyClientConfigurationWithTlsContextConfiguration() {
+            var keyStorePath = getUnitTestKeyStorePath();
+            var tlsConfig = TlsContextConfiguration.builder()
+                    .trustStorePath(keyStorePath)
+                    .trustStorePassword("password")
+                    .build();
+
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(CLIENT_EXTENSION.getEnvironment())
+                    .tlsContextConfiguration(tlsConfig)
                     .buildManagedJerseyClient();
 
             assertThat(client).isInstanceOf(Client.class);
@@ -218,7 +250,7 @@ class DropwizardManagedClientBuilderTest {
 
         @Test
         void shouldReturnNewJerseyClientConfiguration_WithTls_WhenProviderCanProvide(SoftAssertions softly) {
-            var keystorePath = Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+            var keystorePath = getUnitTestKeyStorePath();
             var keystorePassword = "password";
 
             var tlsConfigProvider = TlsConfigProvider.builder()
@@ -239,5 +271,9 @@ class DropwizardManagedClientBuilderTest {
             softly.assertThat(config.getTlsConfiguration().getTrustStorePath()).isEqualTo(new File(keystorePath));
             softly.assertThat(config.getTlsConfiguration().getTrustStorePassword()).isEqualTo(keystorePassword);
         }
+    }
+
+    private static String getUnitTestKeyStorePath() {
+        return Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
     }
 }
