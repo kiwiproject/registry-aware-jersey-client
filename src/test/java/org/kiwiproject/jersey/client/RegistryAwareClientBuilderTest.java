@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
 
+import io.dropwizard.util.Duration;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -65,6 +66,26 @@ class RegistryAwareClientBuilderTest {
                 .contains(
                         entry(ClientProperties.CONNECT_TIMEOUT, 1_000),
                         entry(ClientProperties.READ_TIMEOUT, 2_000)
+                );
+    }
+
+    @Test
+    void shouldSetTimeoutsFromServiceIdentifier() {
+        var serviceId = ServiceIdentifier.builder()
+                .serviceName("test-service")
+                .connectTimeout(Duration.seconds(2))
+                .readTimeout(Duration.seconds(3))
+                .build();
+
+        client = builder
+                .timeoutsFrom(serviceId)
+                .hostnameVerifier(new NoopHostnameVerifier())
+                .build();
+
+        assertThat(client.getConfiguration().getProperties())
+                .contains(
+                        entry(ClientProperties.CONNECT_TIMEOUT, 2_000),
+                        entry(ClientProperties.READ_TIMEOUT, 3_000)
                 );
     }
 

@@ -61,6 +61,13 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     }
 
     @Override
+    public ClientBuilder timeoutsFrom(ServiceIdentifier serviceIdentifier) {
+        connectTimeout(serviceIdentifier.getConnectTimeout().toMilliseconds());
+        readTimeout(serviceIdentifier.getReadTimeout().toMilliseconds());
+        return this;
+    }
+
+    @Override
     public ClientBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
         jerseyClientBuilder.hostnameVerifier(hostnameVerifier);
         hostnameVerifierWasSetOnThis = true;
