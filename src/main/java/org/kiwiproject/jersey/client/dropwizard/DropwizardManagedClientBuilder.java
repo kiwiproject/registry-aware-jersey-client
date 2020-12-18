@@ -173,8 +173,15 @@ public class DropwizardManagedClientBuilder {
         config.setConnectionTimeout(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
         config.setTimeout(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
 
-        if (nonNull(tlsConfigProvider) && tlsConfigProvider.canProvide()) {
+        if (isNull(tlsConfigProvider)) {
+            return config;
+        }
+
+        if (tlsConfigProvider.canProvide()) {
             config.setTlsConfiguration(tlsConfigProvider.getTlsContextConfiguration().toDropwizardTlsConfiguration());
+        } else {
+            LOG.warn("TlsConfigProvider.canProvide() returned false; " +
+                    "custom TlsConfiguration cannot be set for default JerseyClientConfiguration");
         }
 
         return config;
