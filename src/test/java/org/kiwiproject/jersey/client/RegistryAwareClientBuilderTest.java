@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.dropwizard.util.Duration;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -20,6 +22,8 @@ import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
+import org.kiwiproject.security.SSLContextException;
+import org.kiwiproject.test.junit.jupiter.WhiteBoxTest;
 import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
@@ -162,6 +166,24 @@ class RegistryAwareClientBuilderTest {
         client = builder.tlsConfigProvider(provider).build();
 
         assertThat(client.getSslContext()).isNotNull();
+    }
+
+    @WhiteBoxTest
+    void shouldNotThrowException_WhenTlsConfigProvider_ThrowsExceptionConvertingToSSLContext() {
+        var tlsConfig = mock(TlsContextConfiguration.class);
+        when(tlsConfig.toSSLContext()).thenThrow(new SSLContextException("Error creating SSLContext"));
+
+        var tlsConfigProvider = mock(TlsConfigProvider.class);
+        when(tlsConfigProvider.canProvide()).thenReturn(true);
+        when(tlsConfigProvider.getTlsContextConfiguration()).thenReturn(tlsConfig);
+
+        assertThatCode(() -> builder.tlsConfigProvider(tlsConfigProvider).build()).doesNotThrowAnyException();
+        verify(tlsConfig).toSSLContext();
+
+        var client = builder.tlsConfigProvider(tlsConfigProvider).build();
+        assertThat(client.getSslContext())
+                .describedAs("Should still have a non-null, default SSLContext")
+                .isNotNull();
     }
 
     private static String getUnitTestKeyStorePath() {
