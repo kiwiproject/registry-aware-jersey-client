@@ -4,11 +4,13 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
+import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
@@ -32,7 +34,7 @@ public class DropwizardManagedClientBuilder {
     private boolean tlsOptedOut;
 
     /**
-     * Sets the name of the client to be managed
+     * Sets the name of the client to be managed.
      *
      * @param clientName The name of the client
      * @return this builder
@@ -43,7 +45,7 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Sets the Dropwizard environment to setup the management of the client
+     * Sets the Dropwizard environment to setup the management of the client.
      *
      * @param environment the Dropwizard environment
      * @return this builder
@@ -67,7 +69,7 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Sets a {@link JerseyClientConfiguration} that is prepopulated with client configuration
+     * Sets a {@link JerseyClientConfiguration} that is pre-populated with client configuration.
      *
      * @param jerseyClientConfiguration the client configuration
      * @return this builder
@@ -78,7 +80,21 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Sets the {@link TlsConfigProvider} that is used to resolve TLS properties for the client
+     * Sets the TLS configuration that the client will use.
+     *
+     * @param tlsConfig the TLS configuration for the client
+     * @return this builder
+     */
+    public DropwizardManagedClientBuilder tlsContextConfiguration(TlsContextConfiguration tlsConfig) {
+        checkArgumentNotNull(tlsConfig, "tlsConfig must not be null");
+        var tlsProvider = TlsConfigProvider.builder()
+                .tlsContextConfigurationSupplier(() -> tlsConfig)
+                .build();
+        return tlsConfigProvider(tlsProvider);
+    }
+
+    /**
+     * Sets the {@link TlsConfigProvider} that is used to resolve TLS properties for the client.
      *
      * @param tlsConfigProvider the provider of TLS properties
      * @return this builder
@@ -90,7 +106,7 @@ public class DropwizardManagedClientBuilder {
 
     /**
      * Sets up the builder to OPT OUT of TLS configuration. While we think this shouldn't be done, we want to make sure
-     * we support it since Jersey does
+     * we support it since Jersey does.
      *
      * @return this builder.
      */
@@ -100,7 +116,7 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Creates a new Dropwizard-managed {@link Client}
+     * Creates a new Dropwizard-managed {@link Client}.
      *
      * @return the newly created {@link Client} managed by Dropwizard
      * @throws IllegalStateException if clientName or environment is not specified
