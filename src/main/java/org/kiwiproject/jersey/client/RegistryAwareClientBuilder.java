@@ -91,7 +91,8 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         try {
             return sslContext(tlsContextConfig.toSSLContext());
         } catch (Exception e) {
-            LOG.warn("Unable to convert TlsContextConfiguration to SSLContext");
+            LOG.warn("Unable to convert TlsContextConfiguration to SSLContext: {}: {}",
+                    e.getClass().getName(), e.getMessage());
             LOG.debug("TlsContextConfiguration conversion exception: ", e);
         }
 
