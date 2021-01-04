@@ -3,6 +3,7 @@ package org.kiwiproject.jersey.client;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
@@ -21,6 +22,7 @@ import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilter;
+import org.kiwiproject.registry.NoOpRegistryClient;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.security.SSLContextException;
 import org.kiwiproject.test.junit.jupiter.WhiteBoxTest;
@@ -35,10 +37,12 @@ class RegistryAwareClientBuilderTest {
 
     private RegistryAwareClientBuilder builder;
     private RegistryAwareClient client;
+    private RegistryClient registryClient;
 
     @BeforeEach
     void setUp() {
         builder = new RegistryAwareClientBuilder();
+        registryClient = new NoOpRegistryClient();
     }
 
     @AfterEach
@@ -49,8 +53,15 @@ class RegistryAwareClientBuilderTest {
     }
 
     @Test
+    void shouldRequireRegistryClient() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> builder.build())
+                .withMessage("registryClient must not be null");
+    }
+
+    @Test
     void shouldSetDefaultTimeoutsIfNotConfigured() {
-        client = builder.build();
+        client = builder.registryClient(registryClient).build();
 
         assertThat(client.getConfiguration().getProperties())
                 .contains(
@@ -62,6 +73,7 @@ class RegistryAwareClientBuilderTest {
     @Test
     void shouldHonorConfiguredTimeouts() {
         client = builder
+                .registryClient(registryClient)
                 .connectTimeout(1_000)
                 .readTimeout(2_000)
                 .build();
@@ -82,6 +94,7 @@ class RegistryAwareClientBuilderTest {
                 .build();
 
         client = builder
+                .registryClient(registryClient)
                 .timeoutsFrom(serviceId)
                 .hostnameVerifier(new NoopHostnameVerifier())
                 .build();
@@ -96,6 +109,7 @@ class RegistryAwareClientBuilderTest {
     @Test
     void shouldBuildWithLongValuedTimeoutsSetToMaxIntegerValue_EvenThoughThisWouldBeDumbInPractice() {
         assertThatCode(() -> builder
+                .registryClient(registryClient)
                 .connectTimeout((long) Integer.MAX_VALUE)
                 .readTimeout((long) Integer.MAX_VALUE)
                 .build())
@@ -123,20 +137,20 @@ class RegistryAwareClientBuilderTest {
             }
         };
 
-        client = builder.hostnameVerifier(verifier).build();
+        client = builder.registryClient(registryClient).hostnameVerifier(verifier).build();
         assertThat(client.getHostnameVerifier()).isSameAs(verifier);
     }
 
     @Test
     void shouldSetNoopHostnameVerifierIfNotConfigured() {
-        client = builder.build();
+        client = builder.registryClient(registryClient).build();
 
         assertThat(client.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
     }
 
     @Test
     void shouldSetSSLContextIfNotConfigured() {
-        client = builder.build();
+        client = builder.registryClient(registryClient).build();
 
         assertThat(client.getSslContext()).isNotNull();
     }
@@ -150,7 +164,7 @@ class RegistryAwareClientBuilderTest {
                 .build()
                 .toSSLContext();
 
-        client = builder.sslContext(sslContext).build();
+        client = builder.registryClient(registryClient).sslContext(sslContext).build();
 
         assertThat(client.getSslContext()).isSameAs(sslContext);
     }
@@ -163,7 +177,7 @@ class RegistryAwareClientBuilderTest {
                 .trustStorePasswordResolverStrategy(FieldResolverStrategy.<String>builder().explicitValue("password").build())
                 .build();
 
-        client = builder.tlsConfigProvider(provider).build();
+        client = builder.registryClient(registryClient).tlsConfigProvider(provider).build();
 
         assertThat(client.getSslContext()).isNotNull();
     }
@@ -177,7 +191,8 @@ class RegistryAwareClientBuilderTest {
         when(tlsConfigProvider.canProvide()).thenReturn(true);
         when(tlsConfigProvider.getTlsContextConfiguration()).thenReturn(tlsConfig);
 
-        assertThatCode(() -> builder.tlsConfigProvider(tlsConfigProvider).build()).doesNotThrowAnyException();
+        assertThatCode(() -> builder.registryClient(registryClient).tlsConfigProvider(tlsConfigProvider).build())
+                .doesNotThrowAnyException();
         verify(tlsConfig).toSSLContext();
 
         var client = builder.tlsConfigProvider(tlsConfigProvider).build();
@@ -201,21 +216,24 @@ class RegistryAwareClientBuilderTest {
 
     @Test
     void shouldRegisterMultipartFeatureWhenRequested() {
-        client = builder.multipart().build();
+        client = builder.registryClient(registryClient).multipart().build();
 
         assertThat(isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
     }
 
     @Test
     void shouldNotRegisterHeadersSupplierWhenNull() {
-        client = builder.build();
+        client = builder.registryClient(registryClient).build();
 
         assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
     }
 
     @Test
     void shouldRegisterHeadersSupplierWhenNonNull() {
-        client = builder.headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42")).build();
+        client = builder
+                .registryClient(registryClient)
+                .headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42"))
+                .build();
 
         assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
     }
