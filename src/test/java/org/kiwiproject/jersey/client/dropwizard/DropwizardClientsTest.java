@@ -12,6 +12,7 @@ import lombok.Value;
 import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kiwiproject.jersey.client.ClientBuilders;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.json.JsonHelper;
+import org.kiwiproject.registry.NoOpRegistryClient;
+import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -108,10 +111,17 @@ class DropwizardClientsTest {
     @Nested
     class AddJacksonMessageBodyProvider {
 
+        private RegistryClient registryClient;
+
+        @BeforeEach
+        void setUp() {
+            registryClient = new NoOpRegistryClient();
+        }
+
         @Test
         void shouldReturnSameDelegateClientInstance() {
             var mapper = new ObjectMapper();
-            RegistryAwareClient originalClient = ClientBuilders.jersey().build();
+            RegistryAwareClient originalClient = ClientBuilders.jersey().registryClient(registryClient).build();
             Client client = DropwizardClients.addJacksonMessageBodyProvider(originalClient, mapper);
 
             assertThat(client)
@@ -121,7 +131,7 @@ class DropwizardClientsTest {
 
         @Test
         void shouldDeserializeJsonResponses() {
-            var registryAwareClient = ClientBuilders.jersey().build();
+            var registryAwareClient = ClientBuilders.jersey().registryClient(registryClient).build();
             DropwizardClients.addJacksonMessageBodyProvider(registryAwareClient, CLIENT_EXTENSION.getObjectMapper());
 
             var id = 42L;
@@ -138,7 +148,7 @@ class DropwizardClientsTest {
 
         @Test
         void shouldUseCustomizedObjectMapperToWriteTimestampsAsMillis() {
-            var registryAwareClient = ClientBuilders.jersey().build();
+            var registryAwareClient = ClientBuilders.jersey().registryClient(registryClient).build();
             DropwizardClients.addJacksonMessageBodyProvider(registryAwareClient, CLIENT_EXTENSION.getObjectMapper());
 
             var id = 42L;

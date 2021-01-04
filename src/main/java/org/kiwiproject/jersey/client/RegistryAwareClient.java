@@ -2,6 +2,7 @@ package org.kiwiproject.jersey.client;
 
 import static java.util.Objects.nonNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
+import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
@@ -61,8 +62,8 @@ public class RegistryAwareClient implements Client {
     public RegistryAwareClient(Client client,
                                RegistryClient registryClient,
                                @Nullable Supplier<Map<String, Object>> headersSupplier) {
-        this.client = client;
-        this.registryClient = registryClient;
+        this.client = requireNotNull(client, "client must not be null");
+        this.registryClient = requireNotNull(registryClient, "registryClient must not be null");
 
         if (nonNull(headersSupplier)) {
             this.client.register(new AddHeadersOnRequestFilter(headersSupplier));

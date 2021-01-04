@@ -2,6 +2,7 @@ package org.kiwiproject.jersey.client;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,6 +70,18 @@ class RegistryAwareClientTest {
 
     @Nested
     class Construct {
+
+        @Test
+        void shouldNotAllowNullClient() {
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() -> new RegistryAwareClient(null, registryClient));
+        }
+
+        @Test
+        void shouldNotAllowNullRegistryClient() {
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() -> new RegistryAwareClient(client, null));
+        }
 
         @Test
         void shouldSupplyHeaders_WhenSupplierProvided() {
