@@ -19,4 +19,9 @@ public class NoOpRegistryClient implements RegistryClient {
     public List<ServiceInstance> findAllServiceInstancesBy(InstanceQuery query) {
         return List.of();
     }
+
+    @Override
+    public List<ServiceInstance> retrieveAllRegisteredInstances() {
+        return List.of();
+    }
 }
