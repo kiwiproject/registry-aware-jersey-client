@@ -32,7 +32,7 @@
     <properties>
         <!-- Versions for required dependencies -->
         <dropwizard.version>2.0.16</dropwizard.version>
-        <dropwizard-config-providers.version>0.9.0</dropwizard-config-providers.version>
+        <dropwizard-config-providers.version>0.10.0</dropwizard-config-providers.version>
         <jersey.version>2.32</jersey.version>
         <kiwi.version>0.18.0</kiwi.version>
         <service-discovery-client.version>0.9.0</service-discovery-client.version>
