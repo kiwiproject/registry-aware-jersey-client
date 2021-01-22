@@ -15,7 +15,7 @@ Extensions to Jersey Client providing awareness of services registered in a serv
 <dependency>
     <groupId>org.kiwiproject</groupId>
     <artifactId>registry-aware-jersey-client</artifactId>
-    <version>0.7.0</version>
+    <version>[current-version]</version>
 </dependency>
 ```
 
