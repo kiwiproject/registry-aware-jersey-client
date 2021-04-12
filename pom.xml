@@ -33,7 +33,7 @@
         <dropwizard.version>2.0.20</dropwizard.version>
         <dropwizard-config-providers.version>0.13.0</dropwizard-config-providers.version>
         <jersey.version>2.33</jersey.version>
-        <kiwi.version>0.21.0</kiwi.version>
+        <kiwi.version>0.22.0</kiwi.version>
         <service-discovery-client.version>0.15.0</service-discovery-client.version>
 
         <!-- Versions for provided dependencies -->
