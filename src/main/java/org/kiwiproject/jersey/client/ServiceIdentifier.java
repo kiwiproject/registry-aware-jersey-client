@@ -1,6 +1,8 @@
 package org.kiwiproject.jersey.client;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +13,7 @@ import lombok.With;
 import org.kiwiproject.registry.model.Port.PortType;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Service definition used for client connections to services. It identifies the name of a a service, the preferred
@@ -57,6 +60,18 @@ public class ServiceIdentifier {
                 .orElse(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
         this.readTimeout = Optional.ofNullable(readTimeout)
                 .orElse(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+
+        checkTimeout("connect", this.connectTimeout);
+        checkTimeout("read", this.readTimeout);
+    }
+
+    private static void checkTimeout(String name, Duration timeout) {
+        checkArgumentNotNull(timeout, "%s timeout must not be null", name);
+        var millis = timeout.toMilliseconds();
+        checkArgument(millis <= Integer.MAX_VALUE,
+                "%s timeout must be convertible to an int but %s is more than Integer.MAX_VALUE." +
+                        " See Jersey API docs for CONNECT_TIMEOUT and READ_TIMEOUT in ClientProperties",
+                name, millis);
     }
 
     /**
@@ -67,5 +82,41 @@ public class ServiceIdentifier {
      */
     public static ServiceIdentifier copyOf(ServiceIdentifier original) {
         return original.toBuilder().build();
+    }
+
+    /**
+     * Convert the Dropwizard connect timeout to millis as an int.
+     * <p>
+     * This is useful when setting read timeout on a <a href="https://eclipse-ee4j.github.io/jersey/">Jersey</a>
+     * {@code Client}, because even though the JAX-RS APIs now accept
+     * long values for timeouts, if you specify a value greater than the maximum int, then an {@link ArithmeticException}
+     * will be thrown because it uses {@link Math#toIntExact(long)} to convert the value to an int.
+     *
+     * @return the connect timeout in millis
+     * @see org.glassfish.jersey.client.ClientProperties#CONNECT_TIMEOUT
+     * @see org.glassfish.jersey.client.JerseyClientBuilder#connectTimeout(long, TimeUnit)
+     */
+    public int getConnectTimeoutAsIntMillis() {
+        return durationToIntMillis(connectTimeout);
+    }
+
+    /**
+     * Convert the Dropwizard read timeout to millis as an int.
+     * <p>
+     * This is useful when setting read timeout on a <a href="https://eclipse-ee4j.github.io/jersey/">Jersey</a>
+     * {@code Client}, because even though the JAX-RS APIs now accept
+     * long values for timeouts, if you specify a value greater than the maximum int, then an {@link ArithmeticException}
+     * will be thrown because it uses {@link Math#toIntExact(long)} to convert the value to an int.
+     *
+     * @return the read timeout in millis
+     * @see org.glassfish.jersey.client.ClientProperties#READ_TIMEOUT
+     * @see org.glassfish.jersey.client.JerseyClientBuilder#readTimeout(long, TimeUnit)
+     */
+    public int getReadTimeoutAsIntMillis() {
+        return durationToIntMillis(readTimeout);
+    }
+
+    private static int durationToIntMillis(Duration duration) {
+        return Math.toIntExact(duration.toMilliseconds());
     }
 }
