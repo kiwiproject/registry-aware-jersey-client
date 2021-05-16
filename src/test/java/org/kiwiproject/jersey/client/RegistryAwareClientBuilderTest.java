@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegistered;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,7 +23,6 @@ import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilter;
-import org.kiwiproject.jersey.client.util.JerseyTestHelpers;
 import org.kiwiproject.registry.NoOpRegistryClient;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.security.SSLContextException;
@@ -219,14 +219,14 @@ class RegistryAwareClientBuilderTest {
     void shouldRegisterMultipartFeatureWhenRequested() {
         client = builder.registryClient(registryClient).multipart().build();
 
-        assertThat(JerseyTestHelpers.isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
+        assertThat(isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
     }
 
     @Test
     void shouldNotRegisterHeadersSupplierWhenNull() {
         client = builder.registryClient(registryClient).build();
 
-        assertThat(JerseyTestHelpers.isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
+        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
     }
 
     @Test
@@ -236,7 +236,7 @@ class RegistryAwareClientBuilderTest {
                 .headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42"))
                 .build();
 
-        assertThat(JerseyTestHelpers.isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
     }
 
 }
