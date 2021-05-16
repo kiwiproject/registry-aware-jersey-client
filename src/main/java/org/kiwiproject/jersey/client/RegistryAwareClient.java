@@ -194,6 +194,7 @@ public class RegistryAwareClient implements Client {
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
     }
 
+    @VisibleForTesting
     static class AddHeadersOnRequestFilter implements ClientRequestFilter {
 
         private final Supplier<Map<String, Object>> headersSupplier;

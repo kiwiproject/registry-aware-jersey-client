@@ -22,6 +22,7 @@ import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilter;
+import org.kiwiproject.jersey.client.util.JerseyTestHelpers;
 import org.kiwiproject.registry.NoOpRegistryClient;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.security.SSLContextException;
@@ -218,14 +219,14 @@ class RegistryAwareClientBuilderTest {
     void shouldRegisterMultipartFeatureWhenRequested() {
         client = builder.registryClient(registryClient).multipart().build();
 
-        assertThat(isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
+        assertThat(JerseyTestHelpers.isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
     }
 
     @Test
     void shouldNotRegisterHeadersSupplierWhenNull() {
         client = builder.registryClient(registryClient).build();
 
-        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
+        assertThat(JerseyTestHelpers.isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
     }
 
     @Test
@@ -235,10 +236,7 @@ class RegistryAwareClientBuilderTest {
                 .headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42"))
                 .build();
 
-        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+        assertThat(JerseyTestHelpers.isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
     }
 
-    private static boolean isFeatureRegistered(RegistryAwareClient client, Class<?> component) {
-        return client.getConfiguration().isRegistered(component);
-    }
 }

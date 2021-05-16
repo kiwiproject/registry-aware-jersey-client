@@ -6,6 +6,7 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.setup.Environment;
@@ -18,6 +19,10 @@ import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient} instances that are fully
@@ -32,6 +37,7 @@ public class DropwizardManagedClientBuilder {
     private JerseyClientConfiguration jerseyClientConfiguration;
     private TlsConfigProvider tlsConfigProvider;
     private boolean tlsOptedOut;
+    private Supplier<Map<String, Object>> headersSupplier;
 
     /**
      * Sets the name of the client to be managed.
@@ -116,6 +122,18 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
+     * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
+     * the built {@link Client} or {@link RegistryAwareClient} instance sends.
+     *
+     * @param headersSupplier a supplier of headers to attach to requests
+     * @return this builder
+     */
+    public DropwizardManagedClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier) {
+        this.headersSupplier = headersSupplier;
+        return this;
+    }
+
+    /**
      * Creates a new Dropwizard-managed {@link Client}.
      *
      * @return the newly created {@link Client} managed by Dropwizard
@@ -130,9 +148,34 @@ public class DropwizardManagedClientBuilder {
             jerseyClientConfiguration(newDefaultJerseyClientConfiguration(provider));
         }
 
-        return new JerseyClientBuilder(environment)
+        var client = new JerseyClientBuilder(environment)
                 .using(jerseyClientConfiguration)
                 .build(clientName);
+
+        if (nonNull(headersSupplier)) {
+            client.register(new AddHeadersOnRequestFilter(headersSupplier));
+        }
+
+        return client;
+    }
+
+    // TODO Duplicates same class in RegistryAwareClient. If extracted, would need to loosen visibility (make public)!
+    //  Consider making a public part of API in new package, e.g. jersey.client.filter.AddHeadersClientRequestFilter.
+
+    @VisibleForTesting
+    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
+
+        private final Supplier<Map<String, Object>> headersSupplier;
+
+        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
+            this.headersSupplier = headersSupplier;
+        }
+
+        @Override
+        public void filter(ClientRequestContext requestContext) {
+            var headers = headersSupplier.get();
+            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
+        }
     }
 
     /**
