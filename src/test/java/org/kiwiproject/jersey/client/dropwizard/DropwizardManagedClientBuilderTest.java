@@ -4,6 +4,9 @@ import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
+import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegistered;
+import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.Mockito.mock;
 
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -12,6 +15,7 @@ import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,6 +25,7 @@ import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
+import org.kiwiproject.jersey.client.dropwizard.DropwizardManagedClientBuilder.AddHeadersOnRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.test.util.Fixtures;
 
@@ -28,25 +33,48 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 @DisplayName("DropwizardManagedClientBuilder")
 @ExtendWith(DropwizardExtensionsSupport.class)
 @ExtendWith(SoftAssertionsExtension.class)
 class DropwizardManagedClientBuilderTest {
 
+    private static final GenericType<Map<String, List<String>>> MAP_OF_STRING_TO_LIST_OF_STRING_TYPE =
+            new GenericType<>() {
+            };
+
     @Path("/test")
-    @Produces("text/plain")
     public static class TestResource {
 
         @GET
+        @Produces("text/plain")
         public Response get() {
             return Response.ok("ok").build();
         }
+
+        @GET
+        @Path("/echo-headers")
+        @Produces("application/json")
+        public Response verifyHeadersWereSent(@Context HttpHeaders httpHeaders) {
+            return Response.ok(httpHeaders.getRequestHeaders()).build();
+        }
     }
 
+    private String baseUri;
+
     private final DropwizardClientExtension CLIENT_EXTENSION = new DropwizardClientExtension(new TestResource());
+
+    @BeforeEach
+    void setUp() {
+        baseUri = CLIENT_EXTENSION.baseUri().toString() + "/test";
+    }
 
     @Nested
     class BuildManagedJerseyClient {
@@ -91,6 +119,7 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedJerseyClient();
 
             assertThat(client).isInstanceOf(Client.class);
+            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
         }
 
         @Test
@@ -174,6 +203,29 @@ class DropwizardManagedClientBuilderTest {
 
             assertThat(client).isInstanceOf(Client.class);
         }
+
+        @Test
+        void shouldUseGivenHeadersSupplier() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(CLIENT_EXTENSION.getEnvironment())
+                    .headersSupplier(() ->
+                            Map.of(
+                                    "Header-1", "Value-1",
+                                    "Header-2", "Value-2",
+                                    "Header-3", "Value-3"
+                            ))
+                    .buildManagedJerseyClient();
+
+            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+
+            var entity = makeEchoHeadersRequest(client);
+            assertThat(entity).contains(
+                    entry("Header-1", List.of("Value-1")),
+                    entry("Header-2", List.of("Value-2")),
+                    entry("Header-3", List.of("Value-3"))
+            );
+        }
     }
 
     @Nested
@@ -210,7 +262,39 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedRegistryAwareClient();
 
             assertThat(client).isInstanceOf(RegistryAwareClient.class);
+            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
         }
+
+        @Test
+        void shouldUseGivenHeadersSupplier() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(CLIENT_EXTENSION.getEnvironment())
+                    .registryClient(mock(RegistryClient.class))
+                    .headersSupplier(() -> Map.of(
+                            "Header-A", "Value-A",
+                            "Header-B", "Value-B"
+                    ))
+                    .buildManagedRegistryAwareClient();
+
+            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+
+            var entity = makeEchoHeadersRequest(client);
+            assertThat(entity).contains(
+                    entry("Header-A", List.of("Value-A")),
+                    entry("Header-B", List.of("Value-B"))
+            );
+        }
+    }
+
+    private Map<String, List<String>> makeEchoHeadersRequest(Client client) {
+        var response = client.target(baseUri + "/echo-headers")
+                .request()
+                .get();
+
+        assertOkResponse(response);
+
+        return response.readEntity(MAP_OF_STRING_TO_LIST_OF_STRING_TYPE);
     }
 
     @Nested
