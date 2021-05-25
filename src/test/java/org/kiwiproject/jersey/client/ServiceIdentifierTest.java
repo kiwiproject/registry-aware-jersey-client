@@ -12,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.yaml.YamlHelper;
 
@@ -151,6 +153,28 @@ class ServiceIdentifierTest {
         softly.assertThat(identifier.getConnector()).isEqualTo(PortType.ADMIN);
         softly.assertThat(identifier.getConnectTimeout()).isEqualTo(Duration.milliseconds(5));
         softly.assertThat(identifier.getReadTimeout()).isEqualTo(Duration.milliseconds(10));
+    }
+
+    @Nested
+    class Factories {
+
+        @Test
+        void shouldCreateWithServiceName() {
+            var factoryIdentifier = ServiceIdentifier.of("test-service");
+            var builderIdentifier = ServiceIdentifier.builder().serviceName("test-service").build();
+            assertThat(factoryIdentifier).usingRecursiveComparison().isEqualTo(builderIdentifier);
+        }
+
+        @ParameterizedTest
+        @EnumSource(PortType.class)
+        void shouldCreateWithServiceName_AndConnector(PortType connector) {
+            var factoryIdentifier = ServiceIdentifier.of("test-service", connector);
+            var builderIdentifier = ServiceIdentifier.builder()
+                    .serviceName("test-service")
+                    .connector(connector)
+                    .build();
+            assertThat(factoryIdentifier).usingRecursiveComparison().isEqualTo(builderIdentifier);
+        }
     }
 
     @Nested

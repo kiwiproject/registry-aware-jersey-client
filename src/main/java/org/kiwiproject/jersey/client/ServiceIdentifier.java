@@ -75,6 +75,33 @@ public class ServiceIdentifier {
     }
 
     /**
+     * Shortcut factory method to create a new {@link ServiceIdentifier} with the given service name with application
+     * connector type ({@link PortType#APPLICATION APPLICATION}), no minimum or preferred versions, and default timeout
+     * values.
+     *
+     * @param serviceName the service name
+     * @return a new instance
+     */
+    public static ServiceIdentifier of(String serviceName) {
+        return ServiceIdentifier.builder().serviceName(serviceName).build();
+    }
+
+    /**
+     * Shortcut factory method create a new {@link ServiceIdentifier} with the given service name and connector. The
+     * new instance will have no minimum or preferred versions and default timeout values.
+     *
+     * @param serviceName the service name
+     * @param connector   the type of connector, i.e. application or admin
+     * @return a new instance
+     */
+    public static ServiceIdentifier of(String serviceName, PortType connector) {
+        return ServiceIdentifier.builder()
+                .serviceName(serviceName)
+                .connector(connector)
+                .build();
+    }
+
+    /**
      * Creates a copy of {@code original} without modifications.
      *
      * @param original the original {@link ServiceIdentifier} to copy
