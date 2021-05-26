@@ -34,7 +34,7 @@
         <dropwizard-config-providers.version>0.14.0</dropwizard-config-providers.version>
         <jersey.version>2.33</jersey.version>
         <kiwi.version>0.23.0</kiwi.version>
-        <service-discovery-client.version>0.16.0</service-discovery-client.version>
+        <service-discovery-client.version>0.17.0</service-discovery-client.version>
 
         <!-- Versions for provided dependencies -->
         <hibernate-validator.version>6.1.7.Final</hibernate-validator.version>
