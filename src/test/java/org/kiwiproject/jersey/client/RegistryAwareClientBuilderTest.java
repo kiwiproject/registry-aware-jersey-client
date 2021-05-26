@@ -26,7 +26,7 @@ import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilt
 import org.kiwiproject.registry.NoOpRegistryClient;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.security.SSLContextException;
-import org.kiwiproject.test.junit.jupiter.WhiteBoxTest;
+import org.kiwiproject.test.junit.jupiter.ClearBoxTest;
 import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
@@ -183,7 +183,7 @@ class RegistryAwareClientBuilderTest {
         assertThat(client.getSslContext()).isNotNull();
     }
 
-    @WhiteBoxTest
+    @ClearBoxTest
     void shouldNotThrowException_WhenTlsConfigProvider_ThrowsExceptionConvertingToSSLContext() {
         var tlsConfig = mock(TlsContextConfiguration.class);
         when(tlsConfig.toSSLContext()).thenThrow(new SSLContextException("Error creating SSLContext"));
