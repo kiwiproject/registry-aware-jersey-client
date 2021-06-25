@@ -31,18 +31,18 @@
     <properties>
         <!-- Versions for required dependencies -->
         <dropwizard.version>2.0.23</dropwizard.version>
-        <dropwizard-config-providers.version>0.15.0</dropwizard-config-providers.version>
+        <dropwizard-config-providers.version>0.16.0</dropwizard-config-providers.version>
         <jersey.version>2.33</jersey.version>
         <kiwi.version>0.24.0</kiwi.version>
-        <service-discovery-client.version>0.17.0</service-discovery-client.version>
+        <service-discovery-client.version>0.18.0</service-discovery-client.version>
 
         <!-- Versions for provided dependencies -->
         <hibernate-validator.version>6.1.7.Final</hibernate-validator.version>
         <httpcore.version>4.4.14</httpcore.version>
         <jackson.version>[2.10.5,2.10.6)</jackson.version>
-        <metrics-servlets.version>4.1.22</metrics-servlets.version>
-        <metrics-jersey2>4.1.22</metrics-jersey2>
-        <metrics-jetty9>4.1.22</metrics-jetty9>
+        <metrics-jersey2>4.1.23</metrics-jersey2>
+        <metrics-jetty9>4.1.23</metrics-jetty9>
+        <metrics-servlets.version>4.1.23</metrics-servlets.version>
 
         <!-- Versions for optional dependencies -->
 
@@ -110,6 +110,10 @@
                 <exclusion>
                     <groupId>io.dropwizard.metrics</groupId>
                     <artifactId>metrics-jersey2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -266,7 +270,15 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
