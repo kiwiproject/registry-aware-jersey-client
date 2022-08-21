@@ -30,7 +30,7 @@
 
     <properties>
         <!-- Versions for required dependencies -->
-        <dropwizard-config-providers.version>1.1.7</dropwizard-config-providers.version>
+        <dropwizard-config-providers.version>1.1.8</dropwizard-config-providers.version>
         <kiwi.version>2.2.0</kiwi.version>
         <kiwi-bom.version>0.18.0</kiwi-bom.version>
         <service-discovery-client.version>1.1.6</service-discovery-client.version>
