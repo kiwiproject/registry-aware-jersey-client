@@ -5,7 +5,7 @@
 [![CodeQL](https://github.com/kiwiproject/registry-aware-jersey-client/actions/workflows/codeql.yml/badge.svg)](https://github.com/kiwiproject/registry-aware-jersey-client/actions/workflows/codeql.yml)
 [![javadoc](https://javadoc.io/badge2/org.kiwiproject/registry-aware-jersey-client/javadoc.svg)](https://javadoc.io/doc/org.kiwiproject/registry-aware-jersey-client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Maven Central](https://img.shields.io/maven-central/v/org.kiwiproject/registry-aware-jersey-client)](https://central.sonatype.com/artifact/org.kiwiproject/registry-aware-jersey-client/1.1.11)
+[![Maven Central](https://img.shields.io/maven-central/v/org.kiwiproject/registry-aware-jersey-client)](https://central.sonatype.com/artifact/org.kiwiproject/registry-aware-jersey-client/)
 
 Extensions to Jersey Client providing awareness of services registered in a service registry like Consul or Eureka
 
