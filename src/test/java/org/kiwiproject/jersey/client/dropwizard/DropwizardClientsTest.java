@@ -42,7 +42,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @DisplayName("DropwizardClients")
 @ExtendWith(DropwizardExtensionsSupport.class)
-@Slf4j
 class DropwizardClientsTest {
 
     @Path("/dropwizardClients")
@@ -172,14 +171,16 @@ class DropwizardClientsTest {
     }
 
     private static Person newSamplePerson(Long id) {
+        var utcZoneId = ZoneId.of("UTC").normalized();
+
         return Person.builder()
                 .id(id)
                 .firstName("Alice")
                 .lastName("Smith")
                 .email("alice.smith@gmail.com")
                 .age(42)
-                .createdAt(ZonedDateTime.of(2020, 3, 31, 12, 0, 0, 0, ZoneId.of("UTC")))
-                .updatedAt(ZonedDateTime.of(2020, 11, 15, 14, 30, 0, 0, ZoneId.of("UTC")))
+                .createdAt(ZonedDateTime.of(2020, 3, 31, 12, 0, 0, 0, utcZoneId))
+                .updatedAt(ZonedDateTime.of(2020, 11, 15, 14, 30, 0, 0, utcZoneId))
                 .build();
     }
 }
