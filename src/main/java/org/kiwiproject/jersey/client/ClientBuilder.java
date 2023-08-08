@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  * Configure and create {@link RegistryAwareClient} instances using a fluent builder interface. Use {@link ClientBuilders}
  * to get a builder instance.
  * <p>
- * Inspired by {@link javax.ws.rs.client.ClientBuilder}.
+ * Inspired by {@link jakarta.ws.rs.client.ClientBuilder}.
  */
 public interface ClientBuilder {
 

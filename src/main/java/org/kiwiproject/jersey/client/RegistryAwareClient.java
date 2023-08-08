@@ -5,6 +5,10 @@ import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.WebTarget;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -16,10 +20,6 @@ import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.WebTarget;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -163,7 +163,7 @@ public class RegistryAwareClient implements Client {
      * If more than one instance is found, then one of them is randomly chosen. The given {@code pathResolver} function allows
      * a path to be chosen from the {@link ServiceInstance} and added to the {@link WebTarget} path.
      *
-     * @param original      the original {@link ServiceIdentifier} used to lookup a service
+     * @param original      the original {@link ServiceIdentifier} used to look up a service
      * @param portType      the port type (APPLICATION or ADMIN) to use for the WebTarget port
      * @param pathResolver  a function to resolve the path to use from the ServiceInstance
      * @return a {@link WebTarget} for a randomly selected service instance

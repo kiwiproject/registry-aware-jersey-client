@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.kiwiproject.test.util.Fixtures.fixture;
 
 import io.dropwizard.util.Duration;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.yaml.YamlHelper;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.concurrent.TimeUnit;
 
 @DisplayName("ServiceIdentifier")

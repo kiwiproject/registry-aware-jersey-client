@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Service definition used for client connections to services. It identifies the name of a a service, the preferred
+ * Service definition used for client connections to services. It identifies the name of a service, the preferred
  * and minimum versions, timeouts, and connector type. The connector type is defined by {@link PortType PortType} and
  * assumes services have only those types of ports.
  * <p>

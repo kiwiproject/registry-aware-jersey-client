@@ -9,7 +9,10 @@ import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
-import io.dropwizard.setup.Environment;
+import io.dropwizard.core.setup.Environment;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.kiwiproject.config.TlsContextConfiguration;
@@ -18,9 +21,6 @@ import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.registry.client.RegistryClient;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -51,7 +51,7 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Sets the Dropwizard environment to setup the management of the client.
+     * Sets the Dropwizard environment to set up the management of the client.
      *
      * @param environment the Dropwizard environment
      * @return this builder
