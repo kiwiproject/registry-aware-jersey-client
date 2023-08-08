@@ -1,8 +1,7 @@
 package org.kiwiproject.jersey.client.util;
 
+import jakarta.ws.rs.client.Client;
 import lombok.experimental.UtilityClass;
-
-import javax.ws.rs.client.Client;
 
 @UtilityClass
 public class JerseyTestHelpers {

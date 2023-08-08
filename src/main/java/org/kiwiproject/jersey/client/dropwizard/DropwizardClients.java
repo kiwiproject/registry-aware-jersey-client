@@ -2,9 +2,8 @@ package org.kiwiproject.jersey.client.dropwizard;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
+import jakarta.ws.rs.client.Client;
 import lombok.experimental.UtilityClass;
-
-import javax.ws.rs.client.Client;
 
 /**
  * Utilities for adding Dropwizard features to JAX-RS Clients.
