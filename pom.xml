@@ -33,7 +33,7 @@
         <dropwizard-config-providers.version>2.3.0</dropwizard-config-providers.version>
         <kiwi.version>3.4.0</kiwi.version>
         <kiwi-bom.version>2.0.11</kiwi-bom.version>
-        <service-discovery-client.version>2.0.3</service-discovery-client.version>
+        <service-discovery-client.version>2.1.0</service-discovery-client.version>
 
         <!-- Versions for test dependencies -->
         <kiwi-test.version>3.3.0</kiwi-test.version>
