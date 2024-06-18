@@ -238,7 +238,7 @@ class RegistryAwareClientTest {
 
                 var identifier = ServiceIdentifier.builder().serviceName("test-service").build();
                 var target = registryAwareClient.targetForService(identifier, PortType.ADMIN,
-                        instance -> instance.getPaths().getStatusPath());
+                        theInstance -> theInstance.getPaths().getStatusPath());
 
                 assertThat(target.getUri()).hasToString("https://localhost:8081/ping");
             }
