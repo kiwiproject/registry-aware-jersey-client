@@ -196,7 +196,7 @@ class RegistryAwareClientBuilderTest {
                 .doesNotThrowAnyException();
         verify(tlsConfig).toSSLContext();
 
-        var client = builder.tlsConfigProvider(tlsConfigProvider).build();
+        client = builder.tlsConfigProvider(tlsConfigProvider).build();
         assertThat(client.getSslContext())
                 .describedAs("Should still have a non-null, default SSLContext")
                 .isNotNull();
@@ -208,7 +208,7 @@ class RegistryAwareClientBuilderTest {
 
     @Test
     void shouldAcceptGivenRegistryClient() {
-        var registryClient = mock(RegistryClient.class);
+        registryClient = mock(RegistryClient.class);
 
         client = builder.registryClient(registryClient).build();
 
