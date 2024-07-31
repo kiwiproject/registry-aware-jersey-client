@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
@@ -254,4 +255,14 @@ class RegistryAwareClientTest {
         }
     }
 
+    @Test
+    void shouldCloseUnderlyingClientAutomatically() {
+        client = mock(Client.class);
+
+        try (var registryAwareClient = new RegistryAwareClient(client, registryClient)) {
+            // do something with the client
+        }
+
+        verify(client).close();
+    }
 }

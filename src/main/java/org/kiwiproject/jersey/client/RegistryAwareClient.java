@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  * that will find service instances from a registry, e.g. Consul.
  */
 @Slf4j
-public class RegistryAwareClient implements Client {
+public class RegistryAwareClient implements Client, AutoCloseable {
 
     @Delegate
     private final Client client;
