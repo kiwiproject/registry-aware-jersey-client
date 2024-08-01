@@ -21,6 +21,7 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -37,6 +38,8 @@ public class RegistryAwareClient implements Client, AutoCloseable {
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
     private final RegistryClient registryClient;
+    
+    private final AtomicBoolean closed;
 
     /**
      * Creates a new {@link RegistryAwareClient} with the given {@link Client} and {@link RegistryClient}.
@@ -64,6 +67,7 @@ public class RegistryAwareClient implements Client, AutoCloseable {
                                @Nullable Supplier<Map<String, Object>> headersSupplier) {
         this.client = requireNotNull(client, "client must not be null");
         this.registryClient = requireNotNull(registryClient, "registryClient must not be null");
+        this.closed = new AtomicBoolean();
 
         if (nonNull(headersSupplier)) {
             this.client.register(new AddHeadersOnRequestFilter(headersSupplier));
@@ -78,6 +82,21 @@ public class RegistryAwareClient implements Client, AutoCloseable {
      */
     public Client client() {
         return client;
+    }
+
+    @Override
+    public void close() {
+        client.close();
+        closed.set(true);
+    }
+
+    /**
+     * Check whether this client has been closed. 
+     *
+     * @return true if this client has been closed, otherwise false
+     */
+    public boolean isClosed() {
+        return closed.get();
     }
 
     /**

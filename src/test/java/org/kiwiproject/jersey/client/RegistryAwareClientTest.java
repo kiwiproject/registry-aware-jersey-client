@@ -45,6 +45,8 @@ import org.kiwiproject.registry.model.ServicePaths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.random.RandomGenerator;
+import java.util.stream.IntStream;
 
 @DisplayName("RegistryAwareClient")
 @ExtendWith(DropwizardExtensionsSupport.class)
@@ -93,6 +95,11 @@ class RegistryAwareClientTest {
         void shouldNotAllowNullRegistryClient() {
             assertThatIllegalArgumentException()
                     .isThrownBy(() -> new RegistryAwareClient(client, null));
+        }
+
+        @Test
+        void shouldNotBeClosedAfterCreation() {
+            assertThat(registryAwareClient.isClosed()).isFalse();
         }
 
         @Test
@@ -285,5 +292,24 @@ class RegistryAwareClientTest {
         assertThatIllegalStateException()
                 .describedAs("Client should now be closed and throw IllegalStateException")
                 .isThrownBy(() -> client.target(uri).request().get());
+    }
+
+    @Test
+    void shouldBeClosed_AfterClientIsClosed() {
+        registryAwareClient.close();
+
+        assertThat(registryAwareClient.isClosed()).isTrue();
+
+        assertThatIllegalStateException()
+                .describedAs("Client should now be closed and throw IllegalStateException")
+                .isThrownBy(() -> registryAwareClient.target("https://localhost:3001/hello").request().get());
+    }
+
+    @Test
+    void shouldAcceptMultipleCallsToClose() {
+        var count = RandomGenerator.getDefault().nextInt(2, 10);
+        IntStream.rangeClosed(1, count).forEach(ignored -> registryAwareClient.close());
+
+        assertThat(registryAwareClient.isClosed()).isTrue();
     }
 }
