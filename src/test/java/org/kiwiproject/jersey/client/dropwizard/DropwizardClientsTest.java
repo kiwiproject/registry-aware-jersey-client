@@ -82,7 +82,7 @@ class DropwizardClientsTest {
 
     @Value
     @Builder
-    private static class Person {
+    public static class Person {
 
         @With
         Long id;
