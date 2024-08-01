@@ -148,8 +148,7 @@ public class RegistryAwareClient implements Client, AutoCloseable {
                 .minimumVersion(identifier.getMinimumVersion())
                 .build();
 
-        LOG.trace("Find instances with name {}, preferredVersion {}, minimumVersion {}",
-                instanceQuery.getServiceName(), instanceQuery.getPreferredVersion(), instanceQuery.getMinimumVersion());
+        traceLogInstanceQuery(instanceQuery);
 
         var uri = registryClient.findServiceInstanceBy(instanceQuery)
                 .map(instance -> buildInstanceUri(identifier, instance))
@@ -177,8 +176,7 @@ public class RegistryAwareClient implements Client, AutoCloseable {
                 .minimumVersion(identifier.getMinimumVersion())
                 .build();
 
-        LOG.trace("Find instances with name {}, preferredVersion {}, minimumVersion {}",
-                instanceQuery.getServiceName(), instanceQuery.getPreferredVersion(), instanceQuery.getMinimumVersion());
+        traceLogInstanceQuery(instanceQuery);
 
         var serviceInstance = registryClient.findServiceInstanceBy(instanceQuery)
                 .orElseThrow(() -> MissingServiceRuntimeException.from(identifier));
@@ -187,6 +185,11 @@ public class RegistryAwareClient implements Client, AutoCloseable {
 
         return client.target(uri)
                 .path(pathResolver.apply(serviceInstance));
+    }
+
+    private static void traceLogInstanceQuery(RegistryClient.InstanceQuery instanceQuery) {
+        LOG.trace("Find instances with name {}, preferredVersion {}, minimumVersion {}",
+                instanceQuery.getServiceName(), instanceQuery.getPreferredVersion(), instanceQuery.getMinimumVersion());
     }
 
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
