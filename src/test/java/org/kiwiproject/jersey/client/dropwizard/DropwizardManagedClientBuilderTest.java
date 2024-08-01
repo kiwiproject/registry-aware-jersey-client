@@ -72,7 +72,7 @@ class DropwizardManagedClientBuilderTest {
     //
     // This field cannot be static; making it static results in an java.lang.IllegalArgumentException in the tests
     // which call buildManagedJerseyClient. It works the first time it is called, but all tests that call it
-    // afterwards fail with the message:
+    // afterward fail with the message:
     //
     // "A metric named org.apache.hc.client5.http.io.HttpClientConnectionManager.jersey-client.available-connections already exists"
     //
