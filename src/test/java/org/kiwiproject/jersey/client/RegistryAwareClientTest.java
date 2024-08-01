@@ -3,10 +3,13 @@ package org.kiwiproject.jersey.client;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +25,7 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -51,8 +55,15 @@ class RegistryAwareClientTest {
     public static class TestResource {
 
         @GET
+        @Path("/echoHeaders")
         public Response verifyHeadersWereSent(@Context HttpHeaders httpHeaders) {
             return Response.ok(httpHeaders.getRequestHeaders()).build();
+        }
+
+        @GET
+        @Path("/test")
+        public Response test() {
+            return Response.ok().build();
         }
     }
 
@@ -102,8 +113,12 @@ class RegistryAwareClientTest {
             registryAwareClient = new RegistryAwareClient(client, registryClient,
                     () -> Map.of("FOO-HEADER", "This-Is-Cool"));
 
-            var response = registryAwareClient.targetForService("foo-service").request().get();
+            var response = registryAwareClient.targetForService("foo-service")
+                    .path("/echoHeaders")
+                    .request()
+                    .get();
 
+            assertOkResponse(response);
             var bodyMap = response.readEntity(new GenericType<MultivaluedHashMap<String, String>>() {
             });
             var headerMap = KiwiMultivaluedMaps.toSingleValuedParameterMap(bodyMap);
@@ -257,12 +272,18 @@ class RegistryAwareClientTest {
 
     @Test
     void shouldCloseUnderlyingClientAutomatically() {
-        client = mock(Client.class);
+        var spiedClient = spy(client);
+        var uri = UriBuilder.fromUri(CLIENT_EXTENSION.baseUri()).path("test").build();
 
-        try (var registryAwareClient = new RegistryAwareClient(client, registryClient)) {
-            // do something with the client
+        try (var theClient = new RegistryAwareClient(spiedClient, registryClient);
+             var response = theClient.target(uri).request().get()) {
+            assertOkResponse(response);
         }
 
-        verify(client).close();
+        verify(spiedClient).close();
+
+        assertThatIllegalStateException()
+                .describedAs("Client should now be closed and throw IllegalStateException")
+                .isThrownBy(() -> client.target(uri).request().get());
     }
 }
