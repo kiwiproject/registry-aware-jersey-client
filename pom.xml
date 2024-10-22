@@ -30,8 +30,8 @@
 
     <properties>
         <!-- Versions for required dependencies -->
-        <dropwizard-config-providers.version>2.3.3</dropwizard-config-providers.version>
-        <kiwi.version>4.5.0</kiwi.version>
+        <dropwizard-config-providers.version>2.3.4</dropwizard-config-providers.version>
+        <kiwi.version>4.5.2</kiwi.version>
         <kiwi-bom.version>2.0.18</kiwi-bom.version>
         <service-discovery-client.version>2.1.3</service-discovery-client.version>
 
