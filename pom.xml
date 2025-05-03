@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.kiwiproject</groupId>
         <artifactId>kiwi-parent</artifactId>
-        <version>3.0.24</version>
+        <version>3.0.25</version>
     </parent>
 
     <artifactId>registry-aware-jersey-client</artifactId>
@@ -30,10 +30,10 @@
 
     <properties>
         <!-- Versions for required dependencies -->
-        <dropwizard-config-providers.version>2.3.6</dropwizard-config-providers.version>
-        <kiwi.version>4.8.0</kiwi.version>
-        <kiwi-bom.version>2.0.23</kiwi-bom.version>
-        <service-discovery-client.version>2.1.6</service-discovery-client.version>
+        <dropwizard-config-providers.version>2.3.7</dropwizard-config-providers.version>
+        <kiwi.version>4.9.0</kiwi.version>
+        <kiwi-bom.version>2.0.24</kiwi-bom.version>
+        <service-discovery-client.version>2.1.7</service-discovery-client.version>
 
         <!-- Versions for test dependencies -->
         <kiwi-test.version>3.10.0</kiwi-test.version>
