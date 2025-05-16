@@ -1,5 +1,5 @@
 ### Registry Aware Jersey Client
-[![Build](https://github.com/kiwiproject/registry-aware-jersey-client/workflows/build/badge.svg)](https://github.com/kiwiproject/registry-aware-jersey-client/actions?query=workflow%3Abuild)
+[![Build](https://github.com/kiwiproject/registry-aware-jersey-client/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kiwiproject/registry-aware-jersey-client/actions/workflows/build.yml?query=branch%3Amain)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kiwiproject_registry-aware-jersey-client&metric=alert_status)](https://sonarcloud.io/dashboard?id=kiwiproject_registry-aware-jersey-client)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=kiwiproject_registry-aware-jersey-client&metric=coverage)](https://sonarcloud.io/dashboard?id=kiwiproject_registry-aware-jersey-client)
 [![CodeQL](https://github.com/kiwiproject/registry-aware-jersey-client/actions/workflows/codeql.yml/badge.svg)](https://github.com/kiwiproject/registry-aware-jersey-client/actions/workflows/codeql.yml)
