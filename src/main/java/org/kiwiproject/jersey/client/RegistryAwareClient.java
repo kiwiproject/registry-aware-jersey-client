@@ -13,7 +13,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 /**
  * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)} methods
- * that will find service instances from a registry, e.g. Consul.
+ * that will find service instances from a registry, e.g., Consul.
  */
 @Slf4j
 public class RegistryAwareClient implements Client, AutoCloseable {

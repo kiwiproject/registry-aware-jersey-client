@@ -14,7 +14,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
@@ -137,7 +137,7 @@ public class DropwizardManagedClientBuilder {
      * Creates a new Dropwizard-managed {@link Client}.
      *
      * @return the newly created {@link Client} managed by Dropwizard
-     * @throws IllegalStateException if clientName or environment is not specified
+     * @throws IllegalStateException if {@code clientName} or {@code environment} is not specified
      */
     public Client buildManagedJerseyClient() {
         checkState(isNotBlank(clientName), "A name for the managed client must be specified");
@@ -195,7 +195,7 @@ public class DropwizardManagedClientBuilder {
     /**
      * Creates a new {@link JerseyClientConfiguration} to use as a default that is <em>NOT</em> configured for TLS.
      *
-     * @return a {@link JerseyClientConfiguration} with defaults set
+     * @return a {@link JerseyClientConfiguration} with default values set
      */
     public static JerseyClientConfiguration newDefaultJerseyClientConfiguration() {
         return newDefaultJerseyClientConfiguration(null);
@@ -206,7 +206,7 @@ public class DropwizardManagedClientBuilder {
      * given provider is not null and can provide.
      *
      * @param tlsConfigProvider a {@link TlsConfigProvider} used to provide TLS settings
-     * @return a {@link JerseyClientConfiguration} with defaults set
+     * @return a {@link JerseyClientConfiguration} with default values set
      */
     public static JerseyClientConfiguration newDefaultJerseyClientConfiguration(
             @Nullable TlsConfigProvider tlsConfigProvider) {
