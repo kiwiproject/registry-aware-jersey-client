@@ -130,6 +130,23 @@ class RegistryAwareClientBuilderTest {
     }
 
     @Test
+    void shouldSetTimeoutsFromJavaDurations() {
+        var connectTimeout = java.time.Duration.ofSeconds(1);
+        var readTimeout = java.time.Duration.ofSeconds(2);
+        client = builder
+                .registryClient(registryClient)
+                .connectTimeout(connectTimeout)
+                .readTimeout(readTimeout)
+                .build();
+
+        assertThat(client.getConfiguration().getProperties())
+                .contains(
+                        entry(ClientProperties.CONNECT_TIMEOUT, 1_000),
+                        entry(ClientProperties.READ_TIMEOUT, 2_000)
+                );
+    }
+
+    @Test
     void shouldAcceptGivenHostnameVerifier() {
         var verifier = new HostnameVerifier() {
             @Override

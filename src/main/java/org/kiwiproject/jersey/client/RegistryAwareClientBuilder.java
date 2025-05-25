@@ -12,6 +12,7 @@ import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -50,6 +51,11 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     }
 
     @Override
+    public ClientBuilder connectTimeout(Duration timeout) {
+        return connectTimeout(timeout.toMillis());
+    }
+
+    @Override
     public ClientBuilder readTimeout(int millis) {
         jerseyClientBuilder.property(ClientProperties.READ_TIMEOUT, millis);
         return this;
@@ -58,6 +64,11 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     @Override
     public ClientBuilder readTimeout(long millis) {
         return readTimeout(Math.toIntExact(millis));
+    }
+
+    @Override
+    public ClientBuilder readTimeout(Duration timeout) {
+        return readTimeout(timeout.toMillis());
     }
 
     @Override
