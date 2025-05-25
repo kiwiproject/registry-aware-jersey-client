@@ -118,6 +118,24 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     }
 
     @Override
+    public ClientBuilder property(String name, Object value) {
+        jerseyClientBuilder.property(name, value);
+        return this;
+    }
+
+    @Override
+    public ClientBuilder registerComponentClass(Class<?> componentClass) {
+        jerseyClientBuilder.register(componentClass);
+        return this;
+    }
+
+    @Override
+    public ClientBuilder registerComponent(Object component) {
+        jerseyClientBuilder.register(component);
+        return this;
+    }
+
+    @Override
     public ClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier) {
         this.headersSupplier = headersSupplier;
         return this;

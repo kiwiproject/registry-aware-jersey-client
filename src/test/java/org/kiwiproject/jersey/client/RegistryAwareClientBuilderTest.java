@@ -11,9 +11,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jersey3.MetricsFeature;
 import io.dropwizard.util.Duration;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -221,6 +224,54 @@ class RegistryAwareClientBuilderTest {
 
     private static String getUnitTestKeyStorePath() {
         return Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+    }
+
+    @Test
+    void shouldSetCustomProperties() {
+        client = builder
+                .registryClient(registryClient)
+                .property(ClientProperties.CONNECT_TIMEOUT, 500)
+                .property(ClientProperties.READ_TIMEOUT, 750)
+                .property(ClientProperties.FOLLOW_REDIRECTS, false)
+                .property(ClientProperties.REQUEST_ENTITY_PROCESSING, "BUFFERED")
+                .property(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192)
+                .build();
+
+        assertThat(client.getConfiguration().getProperties())
+                .contains(
+                        entry(ClientProperties.CONNECT_TIMEOUT, 500),
+                        entry(ClientProperties.READ_TIMEOUT, 750),
+                        entry(ClientProperties.FOLLOW_REDIRECTS, false),
+                        entry(ClientProperties.REQUEST_ENTITY_PROCESSING, "BUFFERED"),
+                        entry(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192)
+                );
+    }
+
+    @Test
+    void shouldRegisterComponentClasses() {
+        client = builder
+                .registryClient(registryClient)
+                .registerComponentClass(MetricsFeature.class)
+                .registerComponentClass(LoggingFeature.class)
+                .build();
+
+        assertThat(isFeatureRegistered(client, MetricsFeature.class)).isTrue();
+        assertThat(isFeatureRegistered(client, LoggingFeature.class)).isTrue();
+    }
+
+    @Test
+    void shouldRegisterComponents() {
+        var metricsFeature = new MetricsFeature(new MetricRegistry());
+        var loggingFeature = new LoggingFeature();
+
+        client = builder
+                .registryClient(registryClient)
+                .registerComponent(metricsFeature)
+                .registerComponent(loggingFeature)
+                .build();
+
+        assertThat(isFeatureRegistered(client, metricsFeature)).isTrue();
+        assertThat(isFeatureRegistered(client, loggingFeature)).isTrue();
     }
 
     @Test
