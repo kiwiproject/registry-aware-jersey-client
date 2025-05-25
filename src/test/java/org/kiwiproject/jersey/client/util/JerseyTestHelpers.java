@@ -6,11 +6,21 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class JerseyTestHelpers {
 
-    public static boolean isFeatureRegistered(Client client, Class<?> component) {
+    /**
+     * Checks if a component of the specified class type is registered with the client.
+     *
+     * @see jakarta.ws.rs.core.Configuration#isRegistered(Class)
+     */
+    public static boolean isFeatureRegisteredByClass(Client client, Class<?> component) {
         return client.getConfiguration().isRegistered(component);
     }
 
-    public static boolean isFeatureRegistered(Client client, Object component) {
+    /**
+     * Checks if the specific component instance is registered with the client.
+     *
+     * @see jakarta.ws.rs.core.Configuration#isRegistered(Object)
+     */
+    public static boolean isFeatureRegisteredByObject(Client client, Object component) {
         return client.getConfiguration().isRegistered(component);
     }
 }

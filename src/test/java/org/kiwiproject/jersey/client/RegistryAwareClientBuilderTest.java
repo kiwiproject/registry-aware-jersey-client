@@ -6,7 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
-import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegistered;
+import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegisteredByClass;
+import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegisteredByObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -255,8 +256,8 @@ class RegistryAwareClientBuilderTest {
                 .registerComponentClass(LoggingFeature.class)
                 .build();
 
-        assertThat(isFeatureRegistered(client, MetricsFeature.class)).isTrue();
-        assertThat(isFeatureRegistered(client, LoggingFeature.class)).isTrue();
+        assertThat(isFeatureRegisteredByClass(client, MetricsFeature.class)).isTrue();
+        assertThat(isFeatureRegisteredByClass(client, LoggingFeature.class)).isTrue();
     }
 
     @Test
@@ -270,8 +271,8 @@ class RegistryAwareClientBuilderTest {
                 .registerComponent(loggingFeature)
                 .build();
 
-        assertThat(isFeatureRegistered(client, metricsFeature)).isTrue();
-        assertThat(isFeatureRegistered(client, loggingFeature)).isTrue();
+        assertThat(isFeatureRegisteredByObject(client, metricsFeature)).isTrue();
+        assertThat(isFeatureRegisteredByObject(client, loggingFeature)).isTrue();
     }
 
     @Test
@@ -287,14 +288,14 @@ class RegistryAwareClientBuilderTest {
     void shouldRegisterMultipartFeatureWhenRequested() {
         client = builder.registryClient(registryClient).multipart().build();
 
-        assertThat(isFeatureRegistered(client, MultiPartFeature.class)).isTrue();
+        assertThat(isFeatureRegisteredByClass(client, MultiPartFeature.class)).isTrue();
     }
 
     @Test
     void shouldNotRegisterHeadersSupplierWhenNull() {
         client = builder.registryClient(registryClient).build();
 
-        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
+        assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isFalse();
     }
 
     @Test
@@ -304,7 +305,7 @@ class RegistryAwareClientBuilderTest {
                 .headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42"))
                 .build();
 
-        assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+        assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isTrue();
     }
 
 }

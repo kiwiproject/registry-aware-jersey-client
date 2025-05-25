@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
-import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegistered;
+import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegisteredByClass;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.Mockito.mock;
 
@@ -129,7 +129,7 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedJerseyClient();
 
             assertThat(client).isInstanceOf(Client.class);
-            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isFalse();
         }
 
         @Test
@@ -227,7 +227,7 @@ class DropwizardManagedClientBuilderTest {
                             ))
                     .buildManagedJerseyClient();
 
-            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isTrue();
 
             var entity = makeEchoHeadersRequest(client);
             assertThat(entity).contains(
@@ -272,7 +272,7 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedRegistryAwareClient();
 
             assertThat(client).isInstanceOf(RegistryAwareClient.class);
-            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isFalse();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isFalse();
         }
 
         @Test
@@ -287,7 +287,7 @@ class DropwizardManagedClientBuilderTest {
                     ))
                     .buildManagedRegistryAwareClient();
 
-            assertThat(isFeatureRegistered(client, AddHeadersOnRequestFilter.class)).isTrue();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isTrue();
 
             var entity = makeEchoHeadersRequest(client);
             assertThat(entity).contains(
