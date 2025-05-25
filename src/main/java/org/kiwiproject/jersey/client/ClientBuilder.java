@@ -5,6 +5,7 @@ import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -40,6 +41,14 @@ public interface ClientBuilder {
     ClientBuilder connectTimeout(long millis);
 
     /**
+     * Sets the connection timeout for the client.
+     *
+     * @param timeout the duration of the connection timeout; must not be null
+     * @return this builder
+     */
+    ClientBuilder connectTimeout(Duration timeout);
+
+    /**
      * Sets the read timeout for the client.
      *
      * @param millis length of timeout in millis
@@ -54,6 +63,14 @@ public interface ClientBuilder {
      * @return this builder
      */
     ClientBuilder readTimeout(long millis);
+
+    /**
+     * Sets the read timeout for the client.
+     *
+     * @param timeout the duration of the read timeout; must not be null
+     * @return this builder
+     */
+    ClientBuilder readTimeout(Duration timeout);
 
     /**
      * Sets the connect and read timeouts for the client from a {@link ServiceIdentifier}. This is most useful
