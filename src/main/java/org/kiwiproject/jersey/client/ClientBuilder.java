@@ -112,6 +112,33 @@ public interface ClientBuilder {
     ClientBuilder tlsConfigProvider(TlsConfigProvider tlsConfigProvider);
 
     /**
+     * Sets a custom property on the client builder.
+     *
+     * @param name the name of the property to set
+     * @param value the value of the property to set
+     * @return this builder
+     * @see jakarta.ws.rs.client.ClientBuilder#property(String, Object)
+     */
+    ClientBuilder property(String name, Object value);
+
+    /**
+     * Registers a component class with the client.
+     *
+     * @param componentClass the class of the component to register; must not be null
+     * @return this builder
+     * @see jakarta.ws.rs.client.ClientBuilder#register(Class)
+     */
+    ClientBuilder registerComponentClass(Class<?> componentClass);
+
+    /**
+     * Registers an instance of a component with the client.
+     *
+     * @param component The component to register
+     * @see jakarta.ws.rs.client.ClientBuilder#register(Object)
+    */
+    ClientBuilder registerComponent(Object component);
+
+    /**
      * Provides the {@link RegistryClient} to use to find services.
      *
      * @param registryClient The {@link RegistryClient} responsible for looking up services to connect to

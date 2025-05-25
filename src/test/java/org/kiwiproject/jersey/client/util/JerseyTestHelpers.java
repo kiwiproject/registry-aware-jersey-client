@@ -9,4 +9,8 @@ public class JerseyTestHelpers {
     public static boolean isFeatureRegistered(Client client, Class<?> component) {
         return client.getConfiguration().isRegistered(component);
     }
+
+    public static boolean isFeatureRegistered(Client client, Object component) {
+        return client.getConfiguration().isRegistered(component);
+    }
 }
