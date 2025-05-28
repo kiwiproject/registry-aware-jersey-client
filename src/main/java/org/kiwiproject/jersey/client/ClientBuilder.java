@@ -135,7 +135,7 @@ public interface ClientBuilder {
      *
      * @param component The component to register
      * @see jakarta.ws.rs.client.ClientBuilder#register(Object)
-    */
+     */
     ClientBuilder registerComponent(Object component);
 
     /**
