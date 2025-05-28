@@ -221,25 +221,6 @@ public class DropwizardManagedClientBuilder {
         return client;
     }
 
-    // TODO Duplicates same class in RegistryAwareClient. If extracted, would need to loosen visibility (make public)!
-    //  Consider making a public part of API in new package, e.g. jersey.client.filter.AddHeadersClientRequestFilter.
-
-//    @VisibleForTesting
-//    static class AddHeadersClientRequestFilter implements ClientRequestFilter {
-//
-//        private final Supplier<Map<String, Object>> headersSupplier;
-//
-//        AddHeadersClientRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
-//            this.headersSupplier = headersSupplier;
-//        }
-//
-//        @Override
-//        public void filter(ClientRequestContext requestContext) {
-//            var headers = headersSupplier.get();
-//            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
-//        }
-//    }
-
     /**
      * Create a new Dropwizard-managed {@link RegistryAwareClient} with the same behavior as
      * {@link #buildManagedJerseyClient()} but also being registry-aware.

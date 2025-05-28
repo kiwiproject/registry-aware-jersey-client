@@ -215,20 +215,4 @@ public class RegistryAwareClient implements Client, AutoCloseable {
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
     }
 
-//    @VisibleForTesting
-//    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
-//
-//        private final Supplier<Map<String, Object>> headersSupplier;
-//
-//        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
-//            this.headersSupplier = headersSupplier;
-//        }
-//
-//        @Override
-//        public void filter(ClientRequestContext requestContext) {
-//            var headers = headersSupplier.get();
-//            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
-//        }
-//    }
-
 }
