@@ -6,19 +6,17 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.core.setup.Environment;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientRequestContext;
-import jakarta.ws.rs.client.ClientRequestFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 
 import java.util.ArrayList;
@@ -217,7 +215,7 @@ public class DropwizardManagedClientBuilder {
         var client = builder.build(clientName);
 
         if (nonNull(headersSupplier)) {
-            client.register(new AddHeadersOnRequestFilter(headersSupplier));
+            client.register(new AddHeadersClientRequestFilter(headersSupplier));
         }
 
         return client;
@@ -226,21 +224,21 @@ public class DropwizardManagedClientBuilder {
     // TODO Duplicates same class in RegistryAwareClient. If extracted, would need to loosen visibility (make public)!
     //  Consider making a public part of API in new package, e.g. jersey.client.filter.AddHeadersClientRequestFilter.
 
-    @VisibleForTesting
-    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
-
-        private final Supplier<Map<String, Object>> headersSupplier;
-
-        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
-            this.headersSupplier = headersSupplier;
-        }
-
-        @Override
-        public void filter(ClientRequestContext requestContext) {
-            var headers = headersSupplier.get();
-            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
-        }
-    }
+//    @VisibleForTesting
+//    static class AddHeadersClientRequestFilter implements ClientRequestFilter {
+//
+//        private final Supplier<Map<String, Object>> headersSupplier;
+//
+//        AddHeadersClientRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
+//            this.headersSupplier = headersSupplier;
+//        }
+//
+//        @Override
+//        public void filter(ClientRequestContext requestContext) {
+//            var headers = headersSupplier.get();
+//            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
+//        }
+//    }
 
     /**
      * Create a new Dropwizard-managed {@link RegistryAwareClient} with the same behavior as

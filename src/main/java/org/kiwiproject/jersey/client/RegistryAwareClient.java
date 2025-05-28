@@ -6,8 +6,6 @@ import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientRequestContext;
-import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.WebTarget;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,6 +13,7 @@ import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -70,7 +69,7 @@ public class RegistryAwareClient implements Client, AutoCloseable {
         this.closed = new AtomicBoolean();
 
         if (nonNull(headersSupplier)) {
-            this.client.register(new AddHeadersOnRequestFilter(headersSupplier));
+            this.client.register(new AddHeadersClientRequestFilter(headersSupplier));
         }
     }
 
@@ -216,20 +215,20 @@ public class RegistryAwareClient implements Client, AutoCloseable {
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
     }
 
-    @VisibleForTesting
-    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
-
-        private final Supplier<Map<String, Object>> headersSupplier;
-
-        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
-            this.headersSupplier = headersSupplier;
-        }
-
-        @Override
-        public void filter(ClientRequestContext requestContext) {
-            var headers = headersSupplier.get();
-            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
-        }
-    }
+//    @VisibleForTesting
+//    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
+//
+//        private final Supplier<Map<String, Object>> headersSupplier;
+//
+//        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
+//            this.headersSupplier = headersSupplier;
+//        }
+//
+//        @Override
+//        public void filter(ClientRequestContext requestContext) {
+//            var headers = headersSupplier.get();
+//            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
+//        }
+//    }
 
 }

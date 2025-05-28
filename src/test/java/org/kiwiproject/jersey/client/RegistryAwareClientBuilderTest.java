@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
-import org.kiwiproject.jersey.client.RegistryAwareClient.AddHeadersOnRequestFilter;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.NoOpRegistryClient;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.security.SSLContextException;
@@ -295,7 +295,7 @@ class RegistryAwareClientBuilderTest {
     void shouldNotRegisterHeadersSupplierWhenNull() {
         client = builder.registryClient(registryClient).build();
 
-        assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isFalse();
+        assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isFalse();
     }
 
     @Test
@@ -305,7 +305,7 @@ class RegistryAwareClientBuilderTest {
                 .headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42"))
                 .build();
 
-        assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isTrue();
+        assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
     }
 
 }
