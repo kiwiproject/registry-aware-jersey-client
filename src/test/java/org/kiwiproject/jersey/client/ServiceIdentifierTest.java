@@ -3,16 +3,14 @@ package org.kiwiproject.jersey.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.kiwiproject.test.util.Fixtures.fixture;
 
 import io.dropwizard.util.Duration;
 import jakarta.ws.rs.client.ClientBuilder;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -21,7 +19,6 @@ import org.kiwiproject.yaml.YamlHelper;
 import java.util.concurrent.TimeUnit;
 
 @DisplayName("ServiceIdentifier")
-@ExtendWith(SoftAssertionsExtension.class)
 class ServiceIdentifierTest {
 
     @Test
@@ -34,19 +31,21 @@ class ServiceIdentifierTest {
     }
 
     @Test
-    void shouldHaveDefaultValuesForSomeProperties(SoftAssertions softly) {
+    void shouldHaveDefaultValuesForSomeProperties() {
         var identifier = ServiceIdentifier.builder().serviceName("test-service").build();
 
-        softly.assertThat(identifier.getServiceName()).isEqualTo("test-service");
-        softly.assertThat(identifier.getPreferredVersion()).isNull();
-        softly.assertThat(identifier.getMinimumVersion()).isNull();
-        softly.assertThat(identifier.getConnector()).isEqualTo(PortType.APPLICATION);
-        softly.assertThat(identifier.getConnectTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
-        softly.assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+        assertAll(
+                () -> assertThat(identifier.getServiceName()).isEqualTo("test-service"),
+                () -> assertThat(identifier.getPreferredVersion()).isNull(),
+                () -> assertThat(identifier.getMinimumVersion()).isNull(),
+                () -> assertThat(identifier.getConnector()).isEqualTo(PortType.APPLICATION),
+                () -> assertThat(identifier.getConnectTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT),
+                () -> assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT)
+        );
     }
 
     @Test
-    void shouldSetDefaultsEvenWhenSpecifiedAsNull(SoftAssertions softly) {
+    void shouldSetDefaultsEvenWhenSpecifiedAsNull() {
         var identifier = ServiceIdentifier.builder()
                 .serviceName("test-service")
                 .connector(null)
@@ -54,9 +53,11 @@ class ServiceIdentifierTest {
                 .readTimeout(null)
                 .build();
 
-        softly.assertThat(identifier.getConnector()).isEqualTo(PortType.APPLICATION);
-        softly.assertThat(identifier.getConnectTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT);
-        softly.assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT);
+        assertAll(
+                () -> assertThat(identifier.getConnector()).isEqualTo(PortType.APPLICATION),
+                () -> assertThat(identifier.getConnectTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT),
+                () -> assertThat(identifier.getReadTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT)
+        );
     }
 
     @Test
@@ -100,7 +101,7 @@ class ServiceIdentifierTest {
     }
 
     @Test
-    void shouldHaveACopyBuilder(SoftAssertions softly) {
+    void shouldHaveACopyBuilder() {
         var identifier = ServiceIdentifier.builder()
                 .serviceName("copy-service")
                 .preferredVersion("42.0.0")
@@ -112,16 +113,18 @@ class ServiceIdentifierTest {
 
         var identifierCopy = identifier.toBuilder().build();
 
-        softly.assertThat(identifierCopy.getServiceName()).isEqualTo(identifier.getServiceName());
-        softly.assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion());
-        softly.assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion());
-        softly.assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector());
-        softly.assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout());
-        softly.assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout());
+        assertAll(
+                () -> assertThat(identifierCopy.getServiceName()).isEqualTo(identifier.getServiceName()),
+                () -> assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion()),
+                () -> assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion()),
+                () -> assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector()),
+                () -> assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout()),
+                () -> assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout())
+        );
     }
 
     @Test
-    void shouldAllowForCopyWithServiceNameChange(SoftAssertions softly) {
+    void shouldAllowForCopyWithServiceNameChange() {
         var identifier = ServiceIdentifier.builder()
                 .serviceName("copy-service")
                 .preferredVersion("42.0.0")
@@ -133,26 +136,30 @@ class ServiceIdentifierTest {
 
         var identifierCopy = identifier.withServiceName("name-change-service");
 
-        softly.assertThat(identifierCopy.getServiceName()).isEqualTo("name-change-service");
-        softly.assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion());
-        softly.assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion());
-        softly.assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector());
-        softly.assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout());
-        softly.assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout());
+        assertAll(
+                () -> assertThat(identifierCopy.getServiceName()).isEqualTo("name-change-service"),
+                () -> assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion()),
+                () -> assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion()),
+                () -> assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector()),
+                () -> assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout()),
+                () -> assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout())
+        );
     }
 
     @Test
-    void shouldPopulateCorrectlyFromYamlFile(SoftAssertions softly) {
+    void shouldPopulateCorrectlyFromYamlFile() {
         var yaml = new YamlHelper();
 
         var identifier = yaml.toObject(fixture("ServiceIdentifierTest/config.yml"), ServiceIdentifier.class);
 
-        softly.assertThat(identifier.getServiceName()).isEqualTo("config-test-service");
-        softly.assertThat(identifier.getPreferredVersion()).isEqualTo("42.0.1");
-        softly.assertThat(identifier.getMinimumVersion()).isEqualTo("42.0.0");
-        softly.assertThat(identifier.getConnector()).isEqualTo(PortType.ADMIN);
-        softly.assertThat(identifier.getConnectTimeout()).isEqualTo(Duration.milliseconds(5));
-        softly.assertThat(identifier.getReadTimeout()).isEqualTo(Duration.milliseconds(10));
+        assertAll(
+                () -> assertThat(identifier.getServiceName()).isEqualTo("config-test-service"),
+                () -> assertThat(identifier.getPreferredVersion()).isEqualTo("42.0.1"),
+                () -> assertThat(identifier.getMinimumVersion()).isEqualTo("42.0.0"),
+                () -> assertThat(identifier.getConnector()).isEqualTo(PortType.ADMIN),
+                () -> assertThat(identifier.getConnectTimeout()).isEqualTo(Duration.milliseconds(5)),
+                () -> assertThat(identifier.getReadTimeout()).isEqualTo(Duration.milliseconds(10))
+        );
     }
 
     @Nested
@@ -181,7 +188,7 @@ class ServiceIdentifierTest {
     class CopyOf {
 
         @Test
-        void shouldReturnANewInstance_WithDataCopied(SoftAssertions softly) {
+        void shouldReturnANewInstance_WithDataCopied() {
             var identifier = ServiceIdentifier.builder()
                     .serviceName("copy-service")
                     .preferredVersion("42.0.0")
@@ -193,13 +200,15 @@ class ServiceIdentifierTest {
 
             var identifierCopy = ServiceIdentifier.copyOf(identifier);
 
-            softly.assertThat(identifierCopy).isNotSameAs(identifier);
-            softly.assertThat(identifierCopy.getServiceName()).isEqualTo("copy-service");
-            softly.assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion());
-            softly.assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion());
-            softly.assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector());
-            softly.assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout());
-            softly.assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout());
+            assertAll(
+                    () -> assertThat(identifierCopy).isNotSameAs(identifier),
+                    () -> assertThat(identifierCopy.getServiceName()).isEqualTo("copy-service"),
+                    () -> assertThat(identifierCopy.getPreferredVersion()).isEqualTo(identifier.getPreferredVersion()),
+                    () -> assertThat(identifierCopy.getMinimumVersion()).isEqualTo(identifier.getMinimumVersion()),
+                    () -> assertThat(identifierCopy.getConnector()).isEqualTo(identifier.getConnector()),
+                    () -> assertThat(identifierCopy.getConnectTimeout()).isEqualTo(identifier.getConnectTimeout()),
+                    () -> assertThat(identifierCopy.getReadTimeout()).isEqualTo(identifier.getReadTimeout())
+            );
         }
     }
 
