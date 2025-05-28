@@ -11,6 +11,7 @@ import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.Mockito.mock;
 
 import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.client.ssl.TlsConfiguration;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import jakarta.ws.rs.GET;
@@ -366,9 +367,10 @@ class DropwizardManagedClientBuilderTest {
                     () -> assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT),
                     () -> assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT),
                     () -> assertThat(config.getTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_READ_TIMEOUT),
-                    () -> assertThat(config.getTlsConfiguration()).isNotNull(),
-                    () -> assertThat(config.getTlsConfiguration().getTrustStorePath()).isEqualTo(new File(keystorePath)),
-                    () -> assertThat(config.getTlsConfiguration().getTrustStorePassword()).isEqualTo(keystorePassword)
+                    () -> assertThat(config.getTlsConfiguration())
+                            .isNotNull()
+                            .extracting(TlsConfiguration::getTrustStorePath, TlsConfiguration::getTrustStorePassword)
+                            .containsExactly(new File(keystorePath), keystorePassword)
             );
         }
     }
