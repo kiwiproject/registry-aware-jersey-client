@@ -10,6 +10,8 @@ import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegi
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.Mockito.mock;
 
+import com.codahale.metrics.NoopMetricRegistry;
+import com.codahale.metrics.jersey3.MetricsFeature;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.client.ssl.TlsConfiguration;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
@@ -22,6 +24,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.logging.LoggingFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -234,6 +238,62 @@ class DropwizardManagedClientBuilderTest {
                     entry("Header-2", List.of("Value-2")),
                     entry("Header-3", List.of("Value-3"))
             );
+        }
+
+        @Test
+        void shouldAddProperties() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .property(ClientProperties.CONNECT_TIMEOUT, 500)
+                    .property(ClientProperties.READ_TIMEOUT, 750)
+                    .property(ClientProperties.FOLLOW_REDIRECTS, false)
+                    .property(ClientProperties.REQUEST_ENTITY_PROCESSING, "BUFFERED")
+                    .property(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192)
+                    .buildManagedJerseyClient();
+
+            assertThat(client).isInstanceOf(Client.class);
+
+            var configuration = client.getConfiguration();
+            assertAll(
+                    () -> assertThat(configuration.getProperty(ClientProperties.CONNECT_TIMEOUT)).isEqualTo(500),
+                    () -> assertThat(configuration.getProperty(ClientProperties.READ_TIMEOUT)).isEqualTo(750),
+                    () -> assertThat(configuration.getProperty(ClientProperties.FOLLOW_REDIRECTS)).isEqualTo(false),
+                    () -> assertThat(configuration.getProperty(ClientProperties.REQUEST_ENTITY_PROCESSING)).isEqualTo("BUFFERED"),
+                    () -> assertThat(configuration.getProperty(ClientProperties.CHUNKED_ENCODING_SIZE)).isEqualTo(8_192)
+            );
+        }
+
+        @Test
+        void shouldRegisterComponentClasses() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .registerComponentClass(MetricsFeature.class)
+                    .registerComponentClass(LoggingFeature.class)
+                    .buildManagedJerseyClient();
+
+            assertThat(client).isInstanceOf(Client.class);
+
+            var configuration = client.getConfiguration();
+            assertThat(configuration.getClasses()).contains(MetricsFeature.class, LoggingFeature.class);
+        }
+
+        @Test
+        void shouldRegisterComponents() {
+            var metricsFeature = new MetricsFeature(new NoopMetricRegistry());
+            var loggingFeature = new LoggingFeature();
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .registerComponent(metricsFeature)
+                    .registerComponent(loggingFeature)
+                    .buildManagedJerseyClient();
+
+            assertThat(client).isInstanceOf(Client.class);
+
+            var configuration = client.getConfiguration();
+            assertThat(configuration.getInstances()).contains(metricsFeature, loggingFeature);
         }
     }
 

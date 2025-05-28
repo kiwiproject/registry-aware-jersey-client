@@ -21,12 +21,17 @@ import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.registry.client.RegistryClient;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient} instances that are fully
  * managed by Dropwizard.
+ *
+ * @see JerseyClientBuilder
  */
 @Slf4j
 public class DropwizardManagedClientBuilder {
@@ -38,6 +43,16 @@ public class DropwizardManagedClientBuilder {
     private TlsConfigProvider tlsConfigProvider;
     private boolean tlsOptedOut;
     private Supplier<Map<String, Object>> headersSupplier;
+
+    private final Map<String, Object> properties;
+    private final List<Class<?>> componentClasses;
+    private final List<Object> components;
+
+    public DropwizardManagedClientBuilder() {
+        properties = new LinkedHashMap<>();
+        components = new ArrayList<>();
+        componentClasses = new ArrayList<>();
+    }
 
     /**
      * Sets the name of the client to be managed.
@@ -134,6 +149,53 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
+     * Sets a custom property on the client builder.
+     * <p>
+     * <strong>WARNING</strong>:
+     * See the warning in the Javadocs of {@link JerseyClientBuilder#withProperty(String, Object)}.
+     * In other words, prefer using {@link JerseyClientConfiguration} for setting properties using
+     * the {@link #jerseyClientConfiguration(JerseyClientConfiguration)} method.
+     *
+     * @param name  the name of the property to set
+     * @param value the value of the property to set
+     * @return this builder
+     * @see JerseyClientBuilder#withProperty(String, Object)
+     * @see jakarta.ws.rs.client.ClientBuilder#property(String, Object)
+     * @see #jerseyClientConfiguration(JerseyClientConfiguration)
+     */
+    public DropwizardManagedClientBuilder property(String name, Object value) {
+        properties.put(name, value);
+        return this;
+    }
+
+    /**
+     * Registers a component class with the client builder.
+     *
+     * @param componentClass the class of the component to register; must not be null
+     * @return this builder
+     * @see JerseyClientBuilder#withProvider(Class)
+     * @see jakarta.ws.rs.client.ClientBuilder#register(Class)
+     */
+    public DropwizardManagedClientBuilder registerComponentClass(Class<?> componentClass) {
+        checkArgumentNotNull(componentClass, "componentClass must not be null");
+        componentClasses.add(componentClass);
+        return this;
+    }
+
+    /**
+     * Registers an instance of a component with the client builder.
+     *
+     * @param component The component to register
+     * @see JerseyClientBuilder#withProvider(Object)
+     * @see jakarta.ws.rs.client.ClientBuilder#register(Object)
+     */
+    public DropwizardManagedClientBuilder registerComponent(Object component) {
+        checkArgumentNotNull(component, "component must not be null");
+        components.add(component);
+        return this;
+    }
+
+    /**
      * Creates a new Dropwizard-managed {@link Client}.
      *
      * @return the newly created {@link Client} managed by Dropwizard
@@ -148,9 +210,11 @@ public class DropwizardManagedClientBuilder {
             jerseyClientConfiguration(newDefaultJerseyClientConfiguration(provider));
         }
 
-        var client = new JerseyClientBuilder(environment)
-                .using(jerseyClientConfiguration)
-                .build(clientName);
+        var builder = new JerseyClientBuilder(environment).using(jerseyClientConfiguration);
+        properties.forEach(builder::withProperty);
+        componentClasses.forEach(builder::withProvider);
+        components.forEach(builder::withProvider);
+        var client = builder.build(clientName);
 
         if (nonNull(headersSupplier)) {
             client.register(new AddHeadersOnRequestFilter(headersSupplier));
