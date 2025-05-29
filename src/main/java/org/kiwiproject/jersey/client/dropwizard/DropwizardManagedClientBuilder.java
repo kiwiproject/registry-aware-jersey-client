@@ -161,7 +161,7 @@ public class DropwizardManagedClientBuilder {
      * <p>
      * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
      *
-     * @param multivaluedHeadersSupplier a supplier of headers to attach to requests
+     * @param headersMultivalueSupplier a supplier of headers to attach to requests
      * @return this builder
      * @see #headersSupplier(Supplier)
      */
