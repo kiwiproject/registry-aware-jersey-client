@@ -98,6 +98,12 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
+        <!--
+            TODO: Re-evaluate what can be provided and what is required
+             1. We need the Jakarta RS API
+             2. io.dropwizard.Duration is required by RegistryAwareClientConstants
+        -->
+
         <!-- Provided dependencies -->
         <dependency>
             <groupId>io.dropwizard</groupId>

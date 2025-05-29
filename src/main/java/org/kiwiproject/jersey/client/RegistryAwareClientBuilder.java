@@ -141,6 +141,8 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         return this;
     }
 
+    // TODO multivaluedHeadersSupplier
+
     @Override
     public RegistryAwareClient build() {
         var configPropertyNames = jerseyClientBuilder.getConfiguration().getPropertyNames();

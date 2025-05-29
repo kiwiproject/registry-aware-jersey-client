@@ -69,9 +69,13 @@ public class RegistryAwareClient implements Client, AutoCloseable {
         this.closed = new AtomicBoolean();
 
         if (nonNull(headersSupplier)) {
-            this.client.register(new AddHeadersClientRequestFilter(headersSupplier));
+            this.client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
         }
     }
+
+    // TODO factory methods to create with Map or MultivaluedMap, like AddHeadersClientRequestFilter
+    // TODO Consider deprecating existing public constructor, or just update docs to say to use factory method
+    // TODO If keep existing constructor, don't allow Supplier<MultivaluedMap>
 
     /**
      * Return the underlying "raw" JAX-RS {@link Client} instance. Generally won't be needed but this provides an

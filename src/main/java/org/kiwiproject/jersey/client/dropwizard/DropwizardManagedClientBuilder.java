@@ -146,6 +146,8 @@ public class DropwizardManagedClientBuilder {
         return this;
     }
 
+    // TODO multivaluedHeadersSupplier
+
     /**
      * Sets a custom property on the client builder.
      * <p>
@@ -215,7 +217,7 @@ public class DropwizardManagedClientBuilder {
         var client = builder.build(clientName);
 
         if (nonNull(headersSupplier)) {
-            client.register(new AddHeadersClientRequestFilter(headersSupplier));
+            client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
         }
 
         return client;
