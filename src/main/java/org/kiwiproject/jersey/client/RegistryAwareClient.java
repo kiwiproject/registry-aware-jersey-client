@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
+import org.kiwiproject.base.KiwiDeprecated;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
@@ -56,11 +57,20 @@ public class RegistryAwareClient implements Client, AutoCloseable {
      * made by this client.
      * <p>
      * If {@code headersSupplier} is {@code null}, it is ignored.
+     * <p>
+     * As of 2.3.0, this constructor is deprecated because it mutates the {@link Client} when a non-null
+     * {@code headersSupplier} is provided by registering a {@link AddHeadersClientRequestFilter}. Instead,
+     * use {@link #RegistryAwareClient(Client, RegistryClient)} and pass in a fully-configured {@link Client}.
+     * This avoids potential issues where a caller provides a {@link Client} but might not expect that client
+     * to be modified.
      *
      * @param client          the Jersey client to use
      * @param registryClient  the registry lookup client
      * @param headersSupplier a supplier of headers to attach to requests, may be {@code null}
+     * @deprecated use {@link #RegistryAwareClient(Client, RegistryClient)} and provide a fully-configured {@link Client}
      */
+    @Deprecated(since = "2.3.0")
+    @KiwiDeprecated(replacedBy = "#RegistryAwareClient(Client, RegistryClient)")
     public RegistryAwareClient(Client client,
                                RegistryClient registryClient,
                                @Nullable Supplier<Map<String, Object>> headersSupplier) {
@@ -72,10 +82,6 @@ public class RegistryAwareClient implements Client, AutoCloseable {
             this.client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
         }
     }
-
-    // TODO factory methods to create with Map or MultivaluedMap, like AddHeadersClientRequestFilter
-    // TODO Consider deprecating existing public constructor, or just update docs to say to use factory method
-    // TODO If keep existing constructor, don't allow Supplier<MultivaluedMap>
 
     /**
      * Return the underlying "raw" JAX-RS {@link Client} instance. Generally won't be needed but this provides an

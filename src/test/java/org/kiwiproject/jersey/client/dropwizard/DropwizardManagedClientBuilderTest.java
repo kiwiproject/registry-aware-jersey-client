@@ -23,11 +23,13 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -237,6 +239,31 @@ class DropwizardManagedClientBuilderTest {
                     entry("Header-1", List.of("Value-1")),
                     entry("Header-2", List.of("Value-2")),
                     entry("Header-3", List.of("Value-3"))
+            );
+        }
+
+        @Test
+        @Disabled("The multi-valued headers are being converted to a single CSV. Why?")
+        void shouldUseGivenHeadersMultivalueSupplier() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .headersMultivalueSupplier(() -> {
+                        var headers = new MultivaluedHashMap<String, Object>();
+                        headers.putSingle("Header-1", "Value-1");
+                        headers.addAll("Header-2", List.of("Value-2a", "Value-2b"));
+                        headers.addAll("Header-3", List.of("Value-3a", "Value-3b", "Value-3c"));
+                        return headers;
+                    })
+                    .buildManagedJerseyClient();
+
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
+
+            var entity = makeEchoHeadersRequest(client);
+            assertThat(entity).contains(
+                    entry("Header-1", List.of("Value-1")),
+                    entry("Header-2", List.of("Value-2a", "Value-2b")),
+                    entry("Header-3", List.of("Value-3a", "Value-3b", "Value-3c"))
             );
         }
 

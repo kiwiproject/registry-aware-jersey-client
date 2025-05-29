@@ -102,6 +102,7 @@ class RegistryAwareClientTest {
             assertThat(registryAwareClient.isClosed()).isFalse();
         }
 
+        @SuppressWarnings("deprecation")
         @Test
         void shouldSupplyHeaders_WhenSupplierProvided() {
             var baseUri = CLIENT_EXTENSION.baseUri();

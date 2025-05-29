@@ -1,6 +1,7 @@
 package org.kiwiproject.jersey.client;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.nonNull;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
@@ -8,7 +9,9 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.kiwiproject.config.provider.TlsConfigProvider;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -32,6 +35,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     private boolean hostnameVerifierWasSetOnThis;
     private RegistryClient registryClient;
     private Supplier<Map<String, Object>> headersSupplier;
+    private Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier;
 
     @Override
     public ClientBuilder multipart() {
@@ -141,7 +145,11 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         return this;
     }
 
-    // TODO multivaluedHeadersSupplier
+    @Override
+    public ClientBuilder headersMultivaluedSupplier(Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {
+        this.headersMultivalueSupplier = headersMultivalueSupplier;
+        return this;
+    }
 
     @Override
     public RegistryAwareClient build() {
@@ -154,7 +162,15 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
             LOG.info(DEFAULT_TLS_INFO_MESSAGE);
         }
 
-        return new RegistryAwareClient(jerseyClientBuilder.build(), registryClient, headersSupplier);
+        var client = jerseyClientBuilder.build();
+
+        if (nonNull(headersSupplier)) {
+            client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
+        } else if (nonNull(headersMultivalueSupplier)) {
+            client.register(AddHeadersClientRequestFilter.fromMultivaluedMapSupplier(headersMultivalueSupplier));
+        }
+
+        return new RegistryAwareClient(client, registryClient);
     }
 
     private void setConnectTimeoutIfNotConfigured(Collection<String> configPropertyNames) {

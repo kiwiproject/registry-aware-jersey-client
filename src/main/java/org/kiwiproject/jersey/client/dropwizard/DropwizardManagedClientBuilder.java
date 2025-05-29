@@ -10,6 +10,7 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.core.setup.Environment;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.kiwiproject.config.TlsContextConfiguration;
@@ -41,6 +42,7 @@ public class DropwizardManagedClientBuilder {
     private TlsConfigProvider tlsConfigProvider;
     private boolean tlsOptedOut;
     private Supplier<Map<String, Object>> headersSupplier;
+    private Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier;
 
     private final Map<String, Object> properties;
     private final List<Class<?>> componentClasses;
@@ -137,16 +139,37 @@ public class DropwizardManagedClientBuilder {
     /**
      * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
      * the built {@link Client} or {@link RegistryAwareClient} instance sends.
+     * <p>
+     * Use this when you only need to set a single value for each header.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
      *
      * @param headersSupplier a supplier of headers to attach to requests
      * @return this builder
+     * @see #headersMultivalueSupplier(Supplier)
      */
     public DropwizardManagedClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier) {
         this.headersSupplier = headersSupplier;
         return this;
     }
 
-    // TODO multivaluedHeadersSupplier
+    /**
+     * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
+     * the built {@link Client} or {@link RegistryAwareClient} instance sends.
+     * <p>
+     * Use this when you need to set multiple values for the same header.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
+     *
+     * @param multivaluedHeadersSupplier a supplier of headers to attach to requests
+     * @return this builder
+     * @see #headersSupplier(Supplier)
+     */
+    public DropwizardManagedClientBuilder headersMultivalueSupplier(
+            Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {
+        this.headersMultivalueSupplier = headersMultivalueSupplier;
+        return this;
+    }
 
     /**
      * Sets a custom property on the client builder.
@@ -218,6 +241,8 @@ public class DropwizardManagedClientBuilder {
 
         if (nonNull(headersSupplier)) {
             client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
+        } else if (nonNull(headersMultivalueSupplier)) {
+            client.register(AddHeadersClientRequestFilter.fromMultivaluedMapSupplier(headersMultivalueSupplier));
         }
 
         return client;

@@ -15,6 +15,8 @@ import static org.mockito.Mockito.when;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jersey3.MetricsFeature;
 import io.dropwizard.util.Duration;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -35,6 +37,8 @@ import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
+
+import java.util.List;
 import java.util.Map;
 
 @DisplayName("RegistryAwareClientBuilder")
@@ -303,6 +307,21 @@ class RegistryAwareClientBuilderTest {
         client = builder
                 .registryClient(registryClient)
                 .headersSupplier(() -> Map.of("X-Custom-Value", "Foo-42"))
+                .build();
+
+        assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
+    }
+
+    @Test
+    void shouldRegisterHeadersMultivaluedSupplierWhenNonNull() {
+        client = builder
+                .registryClient(registryClient)
+                .headersMultivaluedSupplier(() -> {
+                    var headers = new MultivaluedHashMap<String, Object>();
+                    headers.putSingle("X-Custom-Value", "Foo-42");
+                    headers.put("Accept", List.of("application/json", "application/xml"));
+                    return headers;
+                })
                 .build();
 
         assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
