@@ -206,9 +206,9 @@ class AddHeadersClientRequestFilterTest {
 
         @Test
         void shouldRegisterOnClient_WithMultivaluedSupplier() {
-            var headersSupplier = newMultivaluedMapSupplier();
+            var headersMultivalueSupplier = newMultivaluedMapSupplier();
 
-            AddHeadersClientRequestFilter.createAndRegister(client, null, headersSupplier);
+            AddHeadersClientRequestFilter.createAndRegister(client, null, headersMultivalueSupplier);
 
             var filterCaptor = ArgumentCaptor.forClass(AddHeadersClientRequestFilter.class);
             verify(client, only()).register(filterCaptor.capture());
