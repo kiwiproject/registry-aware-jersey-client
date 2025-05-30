@@ -3,6 +3,7 @@ package org.kiwiproject.jersey.client;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.nonNull;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
@@ -11,7 +12,6 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;

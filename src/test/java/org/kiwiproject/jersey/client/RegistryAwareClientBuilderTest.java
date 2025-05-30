@@ -16,7 +16,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jersey3.MetricsFeature;
 import io.dropwizard.util.Duration;
 import jakarta.ws.rs.core.MultivaluedHashMap;
-
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -37,7 +36,6 @@ import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
-
 import java.util.List;
 import java.util.Map;
 

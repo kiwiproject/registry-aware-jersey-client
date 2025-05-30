@@ -1,8 +1,8 @@
 package org.kiwiproject.jersey.client;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.registry.client.RegistryClient;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
