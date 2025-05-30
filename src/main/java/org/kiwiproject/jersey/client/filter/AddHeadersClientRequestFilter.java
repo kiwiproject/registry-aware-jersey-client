@@ -82,7 +82,9 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
             throw new IllegalStateException(
                     "Supplier provided MultivaluedMap (create for MultivaluedMaps using fromMultivaluedMapSupplier factory method)");
         }
-        map.forEach((key, value) -> requestContext.getHeaders().add(key, value));
+
+        var headers = requestContext.getHeaders();
+        map.forEach((key, value) -> headers.add(key, value));
     }
 
     private void addHeadersFromMultivaluedMap(ClientRequestContext requestContext) {
@@ -91,6 +93,9 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
             LOG.warn("Supplier provided null or empty headers MultivaluedMap");
             return;
         }
-        multivaluedMap.forEach((key, value) -> value.forEach(v -> requestContext.getHeaders().add(key, v)));
+
+        var headers = requestContext.getHeaders();
+        multivaluedMap.forEach((name, values) -> 
+                values.forEach(value -> headers.add(name, value)));
     }
 }
