@@ -1,7 +1,6 @@
 package org.kiwiproject.jersey.client;
 
 import static com.google.common.base.Preconditions.checkState;
-import static java.util.Objects.nonNull;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
@@ -163,12 +162,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         }
 
         var client = jerseyClientBuilder.build();
-
-        if (nonNull(headersSupplier)) {
-            client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
-        } else if (nonNull(headersMultivalueSupplier)) {
-            client.register(AddHeadersClientRequestFilter.fromMultivaluedMapSupplier(headersMultivalueSupplier));
-        }
+        AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
 
         return new RegistryAwareClient(client, registryClient);
     }

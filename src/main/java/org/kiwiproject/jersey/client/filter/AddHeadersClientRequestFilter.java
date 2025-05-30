@@ -7,10 +7,12 @@ import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -23,18 +25,21 @@ import java.util.function.Supplier;
 @Slf4j
 public class AddHeadersClientRequestFilter implements ClientRequestFilter {
 
-    private final Supplier<Map<String, Object>> headersSupplier;
-    private final Supplier<MultivaluedMap<String, Object>> multivaluedHeadersSupplier;
+    @VisibleForTesting
+    final Supplier<Map<String, Object>> headersSupplier;
+
+    @VisibleForTesting
+    final Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier;
 
     @VisibleForTesting
     AddHeadersClientRequestFilter(Supplier<Map<String, Object>> headersSupplier,
-                                  Supplier<MultivaluedMap<String, Object>> multivaluedHeadersSupplier) {
+                                  Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {
 
-        checkOnlyOneArgumentIsNull(headersSupplier, multivaluedHeadersSupplier,
-                "one of headersSupplier and multivaluedHeadersSupplier must be null, and the other non-null");
+        checkOnlyOneArgumentIsNull(headersSupplier, headersMultivalueSupplier,
+                "one of headersSupplier and headersMultivalueSupplier must be null, and the other non-null");
 
         this.headersSupplier = headersSupplier;
-        this.multivaluedHeadersSupplier = multivaluedHeadersSupplier;
+        this.headersMultivalueSupplier = headersMultivalueSupplier;
     }
 
     /**
@@ -56,12 +61,37 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
      * <p>
      * Use this method when you need to supply multiple values for the same header.
      *
-     * @param headersSupplier the supplier that provides headers as a {@link MultivaluedMap}
+     * @param headersMultivalueSupplier the supplier that provides headers as a {@link MultivaluedMap}
      * @return a new {@link AddHeadersClientRequestFilter}
      */
     public static AddHeadersClientRequestFilter fromMultivaluedMapSupplier(
-            Supplier<MultivaluedMap<String, Object>> headersSupplier) {
-        return new AddHeadersClientRequestFilter(null, headersSupplier);
+            Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {
+        return new AddHeadersClientRequestFilter(null, headersMultivalueSupplier);
+    }
+
+    /**
+     * Convenience method to create a new {@link AddHeadersClientRequestFilter} and
+     * register it on {@code client}.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier}
+     * should be non-null. If both are non-null, then {@code headersMultivalueSupplier}
+     * is used and {@code headersSupplier} is ignored. If both are null, this is a no-op.
+     * 
+     * @param client                    the {@link Client} to register the filter on
+     * @param headersSupplier           the supplier that provides headers as a Map
+     * @param headersMultivalueSupplier the supplier that provides headers as a {@link MultivaluedMap}
+     */
+    public static void createAndRegister(Client client,
+                                         @Nullable Supplier<Map<String, Object>> headersSupplier,
+                                         @Nullable Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {        
+       
+        if (nonNull(headersMultivalueSupplier)) {
+            client.register(AddHeadersClientRequestFilter.fromMultivaluedMapSupplier(headersMultivalueSupplier));
+        } else if (nonNull(headersSupplier)) {
+            client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
+        } else {
+            LOG.warn("Not registering AddHeadersClientRequestFilter: headersSupplier and headersMultivalueSupplier are both null");
+        }
     }
 
     @Override
@@ -76,7 +106,7 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
     private void addHeadersFromMap(ClientRequestContext requestContext) {
         var map = headersSupplier.get();
         if (isNullOrEmpty(map)) {
-            LOG.warn("Supplier provided null or empty headers Map");
+            LOG.warn("No headers to add: Supplier provided null or empty headers Map");
             return;
         } else if (map instanceof MultivaluedMap) {
             throw new IllegalStateException(
@@ -88,9 +118,9 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
     }
 
     private void addHeadersFromMultivaluedMap(ClientRequestContext requestContext) {
-        var multivaluedMap = multivaluedHeadersSupplier.get();
+        var multivaluedMap = headersMultivalueSupplier.get();
         if (isNull(multivaluedMap) || multivaluedMap.isEmpty()) {
-            LOG.warn("Supplier provided null or empty headers MultivaluedMap");
+            LOG.warn("No headers to add: Supplier provided null or empty headers MultivaluedMap");
             return;
         }
 

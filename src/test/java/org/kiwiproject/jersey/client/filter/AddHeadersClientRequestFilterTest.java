@@ -7,19 +7,25 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.kiwiproject.test.junit.jupiter.ClearBoxTest;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -37,7 +43,7 @@ class AddHeadersClientRequestFilterTest {
 
     @ClearBoxTest("tests internal constructor logic")
     void shouldThrowIllegalArgumentException_FromConstructor_WhenViolateOnlyOneNullContract() {
-        var expectedMessage = "one of headersSupplier and multivaluedHeadersSupplier must be null, and the other non-null";
+        var expectedMessage = "one of headersSupplier and headersMultivalueSupplier must be null, and the other non-null";
         assertAll(
                 () -> assertThatIllegalArgumentException()
                         .isThrownBy(() -> new AddHeadersClientRequestFilter(null, null))
@@ -163,5 +169,72 @@ class AddHeadersClientRequestFilterTest {
                 null,
                 new MultivaluedHashMap<>()
         );
+    }
+
+    @Nested
+    class CreateAndRegister {
+
+        private Client client;
+
+        @BeforeEach
+        void setUp() {
+            client = mock(Client.class);
+        }
+
+        @Test
+        void shouldDoNothing_WhenNeitherSupplierIsProvided() {
+            AddHeadersClientRequestFilter.createAndRegister(client, null, null);
+
+            verifyNoInteractions(client);
+        }
+
+        @Test
+        void shouldRegisterOnClient_WithMapSupplier() {
+            var headersSupplier = newMapSupplier();
+
+            AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, null);
+
+            var filterCaptor = ArgumentCaptor.forClass(AddHeadersClientRequestFilter.class);
+            verify(client, only()).register(filterCaptor.capture());
+
+            var filter = filterCaptor.getValue();
+            assertAll(
+                    () -> assertThat(filter.headersSupplier).isNotNull(),
+                    () -> assertThat(filter.headersMultivalueSupplier).isNull()
+            );
+        }
+
+        @Test
+        void shouldRegisterOnClient_WithMultivaluedSupplier() {
+            var headersSupplier = newMultivaluedMapSupplier();
+
+            AddHeadersClientRequestFilter.createAndRegister(client, null, headersSupplier);
+
+            var filterCaptor = ArgumentCaptor.forClass(AddHeadersClientRequestFilter.class);
+            verify(client, only()).register(filterCaptor.capture());
+
+            var filter = filterCaptor.getValue();
+            assertAll(
+                    () -> assertThat(filter.headersSupplier).isNull(),
+                    () -> assertThat(filter.headersMultivalueSupplier).isNotNull()
+            );
+        }
+
+        @Test
+        void shouldUseMultivaluedSupplier_IfBothSuppliersAreProvided() {
+            var headersSupplier = newMapSupplier();
+            var headersMultivalueSupplier = newMultivaluedMapSupplier();
+
+            AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
+        
+            var filterCaptor = ArgumentCaptor.forClass(AddHeadersClientRequestFilter.class);
+            verify(client, only()).register(filterCaptor.capture());
+
+            var filter = filterCaptor.getValue();
+            assertAll(
+                    () -> assertThat(filter.headersSupplier).isNull(),
+                    () -> assertThat(filter.headersMultivalueSupplier).isNotNull()
+            );
+        }
     }
 }

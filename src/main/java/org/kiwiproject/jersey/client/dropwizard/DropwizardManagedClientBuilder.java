@@ -241,11 +241,7 @@ public class DropwizardManagedClientBuilder {
         components.forEach(builder::withProvider);
         var client = builder.build(clientName);
 
-        if (nonNull(headersSupplier)) {
-            client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
-        } else if (nonNull(headersMultivalueSupplier)) {
-            client.register(AddHeadersClientRequestFilter.fromMultivaluedMapSupplier(headersMultivalueSupplier));
-        }
+        AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
 
         return client;
     }
