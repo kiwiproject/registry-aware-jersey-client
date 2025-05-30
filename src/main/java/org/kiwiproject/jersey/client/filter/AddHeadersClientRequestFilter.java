@@ -5,6 +5,7 @@ import static java.util.Objects.nonNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkOnlyOneArgumentIsNull;
 
 import com.google.common.annotations.Beta;
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -25,6 +26,7 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
     private final Supplier<Map<String, Object>> headersSupplier;
     private final Supplier<MultivaluedMap<String, Object>> multivaluedHeadersSupplier;
 
+    @VisibleForTesting
     AddHeadersClientRequestFilter(Supplier<Map<String, Object>> headersSupplier,
                                   Supplier<MultivaluedMap<String, Object>> multivaluedHeadersSupplier) {
 
