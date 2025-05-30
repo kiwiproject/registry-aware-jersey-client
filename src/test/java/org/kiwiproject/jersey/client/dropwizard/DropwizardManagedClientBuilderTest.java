@@ -76,6 +76,8 @@ class DropwizardManagedClientBuilderTest {
         @GET
         @Path("/echo-multi-valued-headers")
         public Response verifyMultivaluedHeadersWereSent(@Context HttpHeaders httpHeaders) {
+            // This is necessary because Jersey provides multivalued headers as
+            // a comma-separated list of values.
             MultivaluedMap<String, String> requestHeaders = httpHeaders.getRequestHeaders();
             Map<String, List<String>> headers = requestHeaders.entrySet()
                     .stream()
