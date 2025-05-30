@@ -3,6 +3,7 @@ package org.kiwiproject.jersey.client.filter;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkOnlyOneArgumentIsNull;
+import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.VisibleForTesting;
@@ -10,7 +11,6 @@ import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
-import org.kiwiproject.collect.KiwiMaps;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -75,7 +75,7 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
 
     private void addHeadersFromMap(ClientRequestContext requestContext) {
         var map = headersSupplier.get();
-        if (KiwiMaps.isNullOrEmpty(map)) {
+        if (isNullOrEmpty(map)) {
             LOG.warn("Supplier provided null or empty headers Map");
             return;
         } else if (map instanceof MultivaluedMap) {
