@@ -95,7 +95,6 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
         }
 
         var headers = requestContext.getHeaders();
-        multivaluedMap.forEach((name, values) -> 
-                values.forEach(value -> headers.add(name, value)));
+        multivaluedMap.forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
     }
 }
