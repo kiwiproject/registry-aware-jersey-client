@@ -27,8 +27,10 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient} instances that are fully
- * managed by Dropwizard.
+ * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient}
+ * instances that are fully managed by Dropwizard.
+ * <p>
+ * This requires {@code io.dropwizard:dropwizard-client} as a dependency.
  *
  * @see JerseyClientBuilder
  */
