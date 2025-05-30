@@ -80,7 +80,7 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
             return;
         } else if (map instanceof MultivaluedMap) {
             throw new IllegalStateException(
-                    "Supplier provided MultivaluedMap (create for MultivaluedMaps using fromMultivaluedMapSupplier factory method)");
+                    "Supplier provided MultivaluedMap (for MultivaluedMaps, use fromMultivaluedMapSupplier factory method)");
         }
 
         var headers = requestContext.getHeaders();

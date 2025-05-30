@@ -97,7 +97,7 @@ class AddHeadersClientRequestFilterTest {
 
         assertThatIllegalStateException()
                 .isThrownBy(() -> filter.filter(context))
-                .withMessage("Supplier provided MultivaluedMap (create for MultivaluedMaps using fromMultivaluedMapSupplier factory method)");
+                .withMessage("Supplier provided MultivaluedMap (for MultivaluedMaps, use fromMultivaluedMapSupplier factory method)");
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
