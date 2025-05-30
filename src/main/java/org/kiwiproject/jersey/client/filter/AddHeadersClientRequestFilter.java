@@ -40,6 +40,8 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
     /**
      * Creates a new instance that will add headers from a {@link Map} supplied by the given supplier.
      * The supplier should provide a regular {@link Map}, not a {@link MultivaluedMap}.
+     * <p>
+     * Use this when you only need to set a single value for each header.
      *
      * @param headersSupplier the supplier that provides headers as a Map
      * @return a new {@link AddHeadersClientRequestFilter}
@@ -51,6 +53,7 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
 
     /**
      * Creates a new filter that will add headers from a {@link MultivaluedMap} supplied by the given supplier.
+     * <p>
      * Use this method when you need to supply multiple values for the same header.
      *
      * @param headersSupplier the supplier that provides headers as a {@link MultivaluedMap}
