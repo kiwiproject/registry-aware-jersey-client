@@ -84,8 +84,8 @@ public class RegistryAwareClient implements Client, AutoCloseable {
     }
 
     /**
-     * Return the underlying "raw" JAX-RS {@link Client} instance. Generally won't be needed but this provides an
-     * "escape hatch" if it is needed for some reason. Use wisely, sparingly, or not at all...
+     * Return the underlying "raw" JAX-RS {@link Client} instance. Generally won't be needed, but this provides an
+     * "escape hatch" if it is necessary for some reason. Use wisely, sparingly, or not at all...
      *
      * @return the underlying "raw" JAX-RS {@link Client}
      */
