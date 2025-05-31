@@ -21,7 +21,7 @@ public class DropwizardClients {
      *
      * @param client the Client to add the {@link JacksonMessageBodyProvider}
      * @param mapper the {@link ObjectMapper} that will be supplied to the {@link JacksonMessageBodyProvider}
-     * @return the Client argument, for method chaining
+     * @return the Client, so that callers can chain methods
      * @see #addJacksonMessageBodyProvider(Client, JacksonMessageBodyProvider)
      */
     public static Client addJacksonMessageBodyProvider(Client client, ObjectMapper mapper) {
@@ -41,7 +41,7 @@ public class DropwizardClients {
      *
      * @param client   the Client to add the {@link JacksonMessageBodyProvider}
      * @param provider the {@link JacksonMessageBodyProvider} to add
-     * @return the Client argument, for method chaining
+     * @return the Client, so that callers can chain methods
      */
     public static Client addJacksonMessageBodyProvider(Client client, JacksonMessageBodyProvider provider) {
         return client.register(provider);

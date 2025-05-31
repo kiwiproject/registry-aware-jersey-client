@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit;
  * assumes services have only those types of ports.
  * <p>
  * You can use the {@code withServiceName(String)} and {@code withConnector(PortType)} methods to make a copy of an
- * instance but using the given service name or connector, respectively. These are is useful in situations where you
- * have a {@link ServiceIdentifier} instance, for example having the default {@link PortType#APPLICATION APPLICATION}
+ * instance but using the given service name or connector, respectively. These are useful in situations where you
+ * have a {@link ServiceIdentifier} instance, for example, having the default {@link PortType#APPLICATION APPLICATION}
  * connector, but you need the {@link PortType#ADMIN ADMIN} connector perhaps to check service status or health. Or in
- * situations where you have the same versions and timeouts, but need an instance with a different service name.
+ * situations where you have the same versions and timeouts but need an instance with a different service name.
  */
 @Value
 public class ServiceIdentifier {
@@ -87,11 +87,11 @@ public class ServiceIdentifier {
     }
 
     /**
-     * Shortcut factory method create a new {@link ServiceIdentifier} with the given service name and connector. The
-     * new instance will have no minimum or preferred versions and default timeout values.
+     * Shortcut factory method that creates a new {@link ServiceIdentifier} with the given service name and connector.
+     * The new instance will have no minimum or preferred versions and default timeout values.
      *
      * @param serviceName the service name
-     * @param connector   the type of connector, i.e. application or admin
+     * @param connector   the type of connector, i.e., application or admin
      * @return a new instance
      */
     public static ServiceIdentifier of(String serviceName, PortType connector) {
