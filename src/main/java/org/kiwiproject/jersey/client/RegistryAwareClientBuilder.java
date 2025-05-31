@@ -2,12 +2,14 @@ package org.kiwiproject.jersey.client;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.kiwiproject.config.provider.TlsConfigProvider;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.net.ssl.HostnameVerifier;
@@ -32,6 +34,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     private boolean hostnameVerifierWasSetOnThis;
     private RegistryClient registryClient;
     private Supplier<Map<String, Object>> headersSupplier;
+    private Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier;
 
     @Override
     public ClientBuilder multipart() {
@@ -142,6 +145,12 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     }
 
     @Override
+    public ClientBuilder headersMultivaluedSupplier(Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {
+        this.headersMultivalueSupplier = headersMultivalueSupplier;
+        return this;
+    }
+
+    @Override
     public RegistryAwareClient build() {
         var configPropertyNames = jerseyClientBuilder.getConfiguration().getPropertyNames();
         setConnectTimeoutIfNotConfigured(configPropertyNames);
@@ -152,7 +161,10 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
             LOG.info(DEFAULT_TLS_INFO_MESSAGE);
         }
 
-        return new RegistryAwareClient(jerseyClientBuilder.build(), registryClient, headersSupplier);
+        var client = jerseyClientBuilder.build();
+        AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
+
+        return new RegistryAwareClient(client, registryClient);
     }
 
     private void setConnectTimeoutIfNotConfigured(Collection<String> configPropertyNames) {

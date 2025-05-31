@@ -6,15 +6,15 @@ import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientRequestContext;
-import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.WebTarget;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
+import org.kiwiproject.base.KiwiDeprecated;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -57,11 +57,20 @@ public class RegistryAwareClient implements Client, AutoCloseable {
      * made by this client.
      * <p>
      * If {@code headersSupplier} is {@code null}, it is ignored.
+     * <p>
+     * As of 2.3.0, this constructor is deprecated because it mutates the {@link Client} when a non-null
+     * {@code headersSupplier} is provided by registering a {@link AddHeadersClientRequestFilter}. Instead,
+     * use {@link #RegistryAwareClient(Client, RegistryClient)} and pass in a fully-configured {@link Client}.
+     * This avoids potential issues where a caller provides a {@link Client} but might not expect that client
+     * to be modified.
      *
      * @param client          the Jersey client to use
      * @param registryClient  the registry lookup client
      * @param headersSupplier a supplier of headers to attach to requests, may be {@code null}
+     * @deprecated use {@link #RegistryAwareClient(Client, RegistryClient)} and provide a fully-configured {@link Client}
      */
+    @Deprecated(since = "2.3.0")
+    @KiwiDeprecated(replacedBy = "#RegistryAwareClient(Client, RegistryClient)")
     public RegistryAwareClient(Client client,
                                RegistryClient registryClient,
                                @Nullable Supplier<Map<String, Object>> headersSupplier) {
@@ -70,7 +79,7 @@ public class RegistryAwareClient implements Client, AutoCloseable {
         this.closed = new AtomicBoolean();
 
         if (nonNull(headersSupplier)) {
-            this.client.register(new AddHeadersOnRequestFilter(headersSupplier));
+            this.client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
         }
     }
 
@@ -214,22 +223,6 @@ public class RegistryAwareClient implements Client, AutoCloseable {
     private static String buildInstanceUri(ServiceIdentifier identifier, ServiceInstance instance) {
         var path = identifier.getConnector() == PortType.APPLICATION ? instance.getPaths().getHomePagePath() : "/";
         return ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), identifier.getConnector(), path);
-    }
-
-    @VisibleForTesting
-    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
-
-        private final Supplier<Map<String, Object>> headersSupplier;
-
-        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
-            this.headersSupplier = headersSupplier;
-        }
-
-        @Override
-        public void filter(ClientRequestContext requestContext) {
-            var headers = headersSupplier.get();
-            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
-        }
     }
 
 }

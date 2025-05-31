@@ -7,6 +7,8 @@ import lombok.experimental.UtilityClass;
 
 /**
  * Utilities for adding Dropwizard features to JAX-RS Clients.
+ * <p>
+ * This requires {@code io.dropwizard:dropwizard-client} as a dependency.
  */
 @UtilityClass
 public class DropwizardClients {

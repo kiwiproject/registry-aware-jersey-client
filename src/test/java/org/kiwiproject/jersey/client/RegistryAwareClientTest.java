@@ -102,6 +102,7 @@ class RegistryAwareClientTest {
             assertThat(registryAwareClient.isClosed()).isFalse();
         }
 
+        @SuppressWarnings("deprecation")
         @Test
         void shouldSupplyHeaders_WhenSupplierProvided() {
             var baseUri = CLIENT_EXTENSION.baseUri();
@@ -264,6 +265,18 @@ class RegistryAwareClientTest {
                         theInstance -> theInstance.getPaths().getStatusPath());
 
                 assertThat(target.getUri()).hasToString("https://localhost:8081/ping");
+            }
+
+            @Test
+            void shouldThrowMissingServiceExceptionWhenServiceNotFound() {
+                when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
+                        .thenReturn(Optional.empty());
+                
+                var identifier = ServiceIdentifier.builder().serviceName("test-service").build();
+
+                assertThatThrownBy(() -> registryAwareClient.targetForService(identifier, PortType.ADMIN, theInstance -> theInstance.getPaths().getStatusPath()))
+                        .isInstanceOf(MissingServiceRuntimeException.class)
+                        .hasMessage("No service instances found with name test-service, preferred version [latest], min version [none]");
             }
         }
     }

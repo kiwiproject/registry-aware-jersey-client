@@ -1,11 +1,13 @@
 package org.kiwiproject.jersey.client.dropwizard;
 
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.kiwiproject.base.KiwiStrings.splitOnCommas;
 import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegisteredByClass;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.Mockito.mock;
@@ -23,6 +25,8 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -37,7 +41,7 @@ import org.kiwiproject.config.provider.FieldResolverStrategy;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
-import org.kiwiproject.jersey.client.dropwizard.DropwizardManagedClientBuilder.AddHeadersOnRequestFilter;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.test.util.Fixtures;
 
@@ -67,6 +71,24 @@ class DropwizardManagedClientBuilderTest {
         @Produces("application/json")
         public Response verifyHeadersWereSent(@Context HttpHeaders httpHeaders) {
             return Response.ok(httpHeaders.getRequestHeaders()).build();
+        }
+
+        @GET
+        @Path("/echo-multi-valued-headers")
+        public Response verifyMultivaluedHeadersWereSent(@Context HttpHeaders httpHeaders) {
+            // This is necessary because Jersey provides multivalued headers as
+            // a comma-separated list of values.
+            MultivaluedMap<String, String> requestHeaders = httpHeaders.getRequestHeaders();
+            Map<String, List<String>> headers = requestHeaders.entrySet()
+                    .stream()
+                    .collect(toMap(Map.Entry::getKey, TestResource::flattenHeaders));
+            return Response.ok(headers).build();
+        }
+
+        private static List<String> flattenHeaders(Map.Entry<String, List<String>> entry) {
+            return entry.getValue().stream()
+                    .flatMap(val -> splitOnCommas(val).stream())
+                    .toList();
         }
     }
 
@@ -132,7 +154,7 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedJerseyClient();
 
             assertThat(client).isInstanceOf(Client.class);
-            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isFalse();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isFalse();
         }
 
         @Test
@@ -230,13 +252,37 @@ class DropwizardManagedClientBuilderTest {
                             ))
                     .buildManagedJerseyClient();
 
-            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isTrue();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
 
             var entity = makeEchoHeadersRequest(client);
             assertThat(entity).contains(
                     entry("Header-1", List.of("Value-1")),
                     entry("Header-2", List.of("Value-2")),
                     entry("Header-3", List.of("Value-3"))
+            );
+        }
+
+        @Test
+        void shouldUseGivenHeadersMultivalueSupplier() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .headersMultivalueSupplier(() -> {
+                        var headers = new MultivaluedHashMap<String, Object>();
+                        headers.putSingle("Header-1", "Value-1");
+                        headers.addAll("Header-2", List.of("Value-2a", "Value-2b"));
+                        headers.addAll("Header-3", List.of("Value-3a", "Value-3b", "Value-3c"));
+                        return headers;
+                    })
+                    .buildManagedJerseyClient();
+
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
+
+            var entity = makeEchoMultivaluedHeadersRequest(client);
+            assertThat(entity).contains(
+                    entry("Header-1", List.of("Value-1")),
+                    entry("Header-2", List.of("Value-2a", "Value-2b")),
+                    entry("Header-3", List.of("Value-3a", "Value-3b", "Value-3c"))
             );
         }
 
@@ -331,7 +377,7 @@ class DropwizardManagedClientBuilderTest {
                     .buildManagedRegistryAwareClient();
 
             assertThat(client).isInstanceOf(RegistryAwareClient.class);
-            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isFalse();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isFalse();
         }
 
         @Test
@@ -346,7 +392,7 @@ class DropwizardManagedClientBuilderTest {
                     ))
                     .buildManagedRegistryAwareClient();
 
-            assertThat(isFeatureRegisteredByClass(client, AddHeadersOnRequestFilter.class)).isTrue();
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
 
             var entity = makeEchoHeadersRequest(client);
             assertThat(entity).contains(
@@ -354,10 +400,44 @@ class DropwizardManagedClientBuilderTest {
                     entry("Header-B", List.of("Value-B"))
             );
         }
+
+        @Test
+        void shouldUseGivenHeadersMultivalueSupplier() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .registryClient(mock(RegistryClient.class))
+                    .headersMultivalueSupplier(() -> {
+                        var headers = new MultivaluedHashMap<String, Object>();
+                        headers.putSingle("Header-1", "Value-1");
+                        headers.addAll("Header-2", List.of("Value-2a", "Value-2b"));
+                        headers.addAll("Header-3", List.of("Value-3a", "Value-3b", "Value-3c"));
+                        return headers;
+                    })
+                    .buildManagedRegistryAwareClient();
+
+            assertThat(isFeatureRegisteredByClass(client, AddHeadersClientRequestFilter.class)).isTrue();
+
+            var entity = makeEchoMultivaluedHeadersRequest(client);
+            assertThat(entity).contains(
+                    entry("Header-1", List.of("Value-1")),
+                    entry("Header-2", List.of("Value-2a", "Value-2b")),
+                    entry("Header-3", List.of("Value-3a", "Value-3b", "Value-3c"))
+            );
+        }
     }
 
     private Map<String, List<String>> makeEchoHeadersRequest(Client client) {
-        var response = client.target(baseUri + "/echo-headers")
+        return makeEchoHeadersRequest(client, "/echo-headers");
+    }
+
+    private Map<String, List<String>> makeEchoMultivaluedHeadersRequest(Client client) {
+        return makeEchoHeadersRequest(client, "/echo-multi-valued-headers");
+    }
+
+    private Map<String, List<String>> makeEchoHeadersRequest(Client client, String path) {
+        var response = client.target(baseUri)
+                .path(path)
                 .request()
                 .get();
 

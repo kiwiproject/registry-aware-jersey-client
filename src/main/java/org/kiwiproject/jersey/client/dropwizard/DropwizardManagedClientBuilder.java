@@ -6,19 +6,18 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.core.setup.Environment;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientRequestContext;
-import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.kiwiproject.config.TlsContextConfiguration;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
+import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 
 import java.util.ArrayList;
@@ -28,8 +27,10 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient} instances that are fully
- * managed by Dropwizard.
+ * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient}
+ * instances that are fully managed by Dropwizard.
+ * <p>
+ * This requires {@code io.dropwizard:dropwizard-client} as a dependency.
  *
  * @see JerseyClientBuilder
  */
@@ -43,6 +44,7 @@ public class DropwizardManagedClientBuilder {
     private TlsConfigProvider tlsConfigProvider;
     private boolean tlsOptedOut;
     private Supplier<Map<String, Object>> headersSupplier;
+    private Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier;
 
     private final Map<String, Object> properties;
     private final List<Class<?>> componentClasses;
@@ -139,12 +141,35 @@ public class DropwizardManagedClientBuilder {
     /**
      * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
      * the built {@link Client} or {@link RegistryAwareClient} instance sends.
+     * <p>
+     * Use this when you only need to set a single value for each header.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
      *
      * @param headersSupplier a supplier of headers to attach to requests
      * @return this builder
+     * @see #headersMultivalueSupplier(Supplier)
      */
     public DropwizardManagedClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier) {
         this.headersSupplier = headersSupplier;
+        return this;
+    }
+
+    /**
+     * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
+     * the built {@link Client} or {@link RegistryAwareClient} instance sends.
+     * <p>
+     * Use this when you need to set multiple values for the same header.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
+     *
+     * @param headersMultivalueSupplier a supplier of headers to attach to requests
+     * @return this builder
+     * @see #headersSupplier(Supplier)
+     */
+    public DropwizardManagedClientBuilder headersMultivalueSupplier(
+            Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier) {
+        this.headersMultivalueSupplier = headersMultivalueSupplier;
         return this;
     }
 
@@ -216,30 +241,9 @@ public class DropwizardManagedClientBuilder {
         components.forEach(builder::withProvider);
         var client = builder.build(clientName);
 
-        if (nonNull(headersSupplier)) {
-            client.register(new AddHeadersOnRequestFilter(headersSupplier));
-        }
+        AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
 
         return client;
-    }
-
-    // TODO Duplicates same class in RegistryAwareClient. If extracted, would need to loosen visibility (make public)!
-    //  Consider making a public part of API in new package, e.g. jersey.client.filter.AddHeadersClientRequestFilter.
-
-    @VisibleForTesting
-    static class AddHeadersOnRequestFilter implements ClientRequestFilter {
-
-        private final Supplier<Map<String, Object>> headersSupplier;
-
-        AddHeadersOnRequestFilter(Supplier<Map<String, Object>> headersSupplier) {
-            this.headersSupplier = headersSupplier;
-        }
-
-        @Override
-        public void filter(ClientRequestContext requestContext) {
-            var headers = headersSupplier.get();
-            headers.forEach((key, value) -> requestContext.getHeaders().add(key, value));
-        }
     }
 
     /**

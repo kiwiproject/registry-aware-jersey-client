@@ -1,5 +1,6 @@
 package org.kiwiproject.jersey.client;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.registry.client.RegistryClient;
 
@@ -149,11 +150,30 @@ public interface ClientBuilder {
     /**
      * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
      * the built {@link RegistryAwareClient} instance sends.
+     * <p>
+     * Use this when you only need to set a single value for each header.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
      *
      * @param headersSupplier a {@link Supplier} that creates a header map
      * @return this builder
+     * @see #headersMultivaluedSupplier(Supplier)
      */
     ClientBuilder headersSupplier(Supplier<Map<String, Object>> headersSupplier);
+
+    /**
+     * The given {@link Supplier} will be used to attach headers to <em>all</em> requests that
+     * the built {@link RegistryAwareClient} instance sends.
+     * <p>
+     * Use this when you need to set multiple values for the same header.
+     * <p>
+     * Only one of {@code headersSupplier} or {@code headersMultivalueSupplier} should be set.
+     *
+     * @param headersMultivalueSupplier a {@link Supplier} that creates a multivalued header map
+     * @return this builder
+     * @see #headersSupplier(Supplier)
+     */
+    ClientBuilder headersMultivaluedSupplier(Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier);
 
     /**
      * Builds the {@link RegistryAwareClient} with the configured options.
