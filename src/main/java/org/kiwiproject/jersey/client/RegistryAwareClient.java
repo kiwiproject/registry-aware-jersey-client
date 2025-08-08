@@ -58,8 +58,8 @@ public class RegistryAwareClient implements Client, AutoCloseable {
      * <p>
      * If {@code headersSupplier} is {@code null}, it is ignored.
      * <p>
-     * As of 2.3.0, this constructor is deprecated because it mutates the {@link Client} when a non-null
-     * {@code headersSupplier} is provided by registering a {@link AddHeadersClientRequestFilter}. Instead,
+     * As of 2.3.0, this constructor is deprecated <em>for removal</em> because it mutates the {@link Client} when
+     * a non-null {@code headersSupplier} is provided by registering a {@link AddHeadersClientRequestFilter}. Instead,
      * use {@link #RegistryAwareClient(Client, RegistryClient)} and pass in a fully-configured {@link Client}.
      * This avoids potential issues where a caller provides a {@link Client} but might not expect that client
      * to be modified.
@@ -69,8 +69,12 @@ public class RegistryAwareClient implements Client, AutoCloseable {
      * @param headersSupplier a supplier of headers to attach to requests, may be {@code null}
      * @deprecated use {@link #RegistryAwareClient(Client, RegistryClient)} and provide a fully-configured {@link Client}
      */
-    @Deprecated(since = "2.3.0")
-    @KiwiDeprecated(replacedBy = "#RegistryAwareClient(Client, RegistryClient)")
+    @Deprecated(since = "2.3.0", forRemoval = true)
+    @KiwiDeprecated(
+        replacedBy = "#RegistryAwareClient(Client, RegistryClient)",
+        removeAt = "3.0.0",
+        reference = "https://github.com/kiwiproject/registry-aware-jersey-client/issues/400"
+    )
     public RegistryAwareClient(Client client,
                                RegistryClient registryClient,
                                @Nullable Supplier<Map<String, Object>> headersSupplier) {
