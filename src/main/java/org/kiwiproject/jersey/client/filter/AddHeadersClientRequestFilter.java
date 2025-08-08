@@ -90,7 +90,7 @@ public class AddHeadersClientRequestFilter implements ClientRequestFilter {
         } else if (nonNull(headersSupplier)) {
             client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
         } else {
-            LOG.warn("Not registering AddHeadersClientRequestFilter: headersSupplier and headersMultivalueSupplier are both null");
+            LOG.debug("Not registering AddHeadersClientRequestFilter: headersSupplier and headersMultivalueSupplier are both null");
         }
     }
 
