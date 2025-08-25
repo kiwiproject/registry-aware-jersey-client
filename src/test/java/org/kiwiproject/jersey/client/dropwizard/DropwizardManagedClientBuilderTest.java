@@ -505,6 +505,7 @@ class DropwizardManagedClientBuilderTest {
 
             var config = DropwizardManagedClientBuilder.newDefaultJerseyClientConfiguration(tlsConfigProvider);
 
+            //noinspection DataFlowIssue
             assertAll(
                     () -> assertThat(config.getConnectionRequestTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECTION_POOL_TIMEOUT),
                     () -> assertThat(config.getConnectionTimeout()).isEqualTo(RegistryAwareClientConstants.DEFAULT_CONNECT_TIMEOUT),
