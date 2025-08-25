@@ -151,6 +151,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TODO: Remove once update to kiwi-test 3.12.0+ (currently required by ResetLogbackLoggingExtension) -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>

@@ -41,6 +41,7 @@ import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
+import org.kiwiproject.test.junit.jupiter.ResetLogbackLoggingExtension;
 
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 @DisplayName("RegistryAwareClient")
+@ExtendWith(ResetLogbackLoggingExtension.class)
 @ExtendWith(DropwizardExtensionsSupport.class)
 class RegistryAwareClientTest {
 

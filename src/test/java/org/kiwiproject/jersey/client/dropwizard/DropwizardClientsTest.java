@@ -34,6 +34,7 @@ import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.json.JsonHelper;
 import org.kiwiproject.registry.NoOpRegistryClient;
 import org.kiwiproject.registry.client.RegistryClient;
+import org.kiwiproject.test.junit.jupiter.ResetLogbackLoggingExtension;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -41,6 +42,7 @@ import java.time.ZonedDateTime;
 import java.util.concurrent.ThreadLocalRandom;
 
 @DisplayName("DropwizardClients")
+@ExtendWith(ResetLogbackLoggingExtension.class)
 @ExtendWith(DropwizardExtensionsSupport.class)
 class DropwizardClientsTest {
 
