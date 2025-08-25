@@ -43,6 +43,7 @@ import org.kiwiproject.jersey.client.RegistryAwareClient;
 import org.kiwiproject.jersey.client.RegistryAwareClientConstants;
 import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
+import org.kiwiproject.test.junit.jupiter.ResetLogbackLoggingExtension;
 import org.kiwiproject.test.util.Fixtures;
 
 import java.io.File;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 @DisplayName("DropwizardManagedClientBuilder")
+@ExtendWith(ResetLogbackLoggingExtension.class)
 @ExtendWith(DropwizardExtensionsSupport.class)
 class DropwizardManagedClientBuilderTest {
 
