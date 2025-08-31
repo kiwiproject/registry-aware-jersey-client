@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
+import static org.kiwiproject.base.KiwiStrings.f;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -45,6 +47,7 @@ public class DropwizardManagedClientBuilder {
     private boolean tlsOptedOut;
     private Supplier<Map<String, Object>> headersSupplier;
     private Supplier<MultivaluedMap<String, Object>> headersMultivalueSupplier;
+    @Nullable private Consumer<JerseyClientBuilder> customizer;
 
     private final Map<String, Object> properties;
     private final List<Class<?>> componentClasses;
@@ -211,12 +214,48 @@ public class DropwizardManagedClientBuilder {
      * Registers an instance of a component with the client builder.
      *
      * @param component The component to register
+     * @return this builder
      * @see JerseyClientBuilder#withProvider(Object)
      * @see jakarta.ws.rs.client.ClientBuilder#register(Object)
      */
     public DropwizardManagedClientBuilder registerComponent(Object component) {
         checkArgumentNotNull(component, "component must not be null");
         components.add(component);
+        return this;
+    }
+
+    /**
+     * Provides the ability to customize the {@link JerseyClientBuilder} that this builder
+     * uses when creating the final client instance.
+     * <p>
+     * Be careful when using this method, since callers could accidentally override existing
+     * configuration such as the {@link JerseyClientConfiguration}, {@link Environment},
+     * properties, or providers which were configured on this builder.
+     * <p>
+     * This method is intended to be used to provide additional configuration of the
+     * {@link JerseyClientBuilder}, for example, by calling the various {@code using} methods
+     * which are not exposed here such as {@link JerseyClientBuilder#using(javax.net.ssl.HostnameVerifier)} or
+     * {@link JerseyClientBuilder#using(org.apache.hc.client5.http.DnsResolver)}.
+     * <p>
+     * You can add multiple customizers, and they will execute in the order they were added.
+     * Customizers always run after the builder is otherwise fully configured. This means
+     * it is possible to override previously set configuration properties or providers (components or
+     * component classes), either by accident or intentionally. If the customizer sets a property or provider
+     * that was already configured, the customizer’s value takes effect.
+     * <p>
+     * If the customizer throws an exception, the {@code build} methods will throw an
+     * {@link IllegalStateException} that wraps the original cause. In addition, a throwing customizer
+     * short-circuits later customizers.
+     * <p>
+     * <em>Do not call build on the provided JerseyClientBuilder.</em>
+     * The Jersey client should be built by calling one of the {@code build} methods in this class.
+     *
+     * @param customizer a consumer that accepts a {@link JerseyClientBuilder}
+     * @return this builder
+     */
+    public DropwizardManagedClientBuilder customize(Consumer<JerseyClientBuilder> customizer) {
+        checkArgumentNotNull(customizer, "customizer must not be null");
+        this.customizer = isNull(this.customizer) ? customizer : this.customizer.andThen(customizer);
         return this;
     }
 
@@ -239,11 +278,25 @@ public class DropwizardManagedClientBuilder {
         properties.forEach(builder::withProperty);
         componentClasses.forEach(builder::withProvider);
         components.forEach(builder::withProvider);
+        tryCustomizeOrThrow(builder);
         var client = builder.build(clientName);
 
         AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
 
         return client;
+    }
+
+    private void tryCustomizeOrThrow(JerseyClientBuilder builder) {
+        try {
+            if (nonNull(customizer)) {
+                LOG.debug("Applying JerseyClientBuilder customizations");
+                customizer.accept(builder);
+            }
+        } catch (RuntimeException e) {
+            var message = f("Customizer failed while configuring JerseyClientBuilder for client {}", clientName);
+            LOG.warn(message, e);
+            throw new IllegalStateException(message, e);
+        }
     }
 
     /**

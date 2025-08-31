@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -18,6 +19,7 @@ import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.client.ssl.TlsConfiguration;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
+import io.dropwizard.util.Duration;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -342,6 +344,96 @@ class DropwizardManagedClientBuilderTest {
 
             var configuration = client.getConfiguration();
             assertThat(configuration.getInstances()).contains(metricsFeature, loggingFeature);
+        }
+
+        @Test
+        void shouldApplyCustomizer() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .customize(builder -> builder
+                            .withProvider(MetricsFeature.class)
+                            .withProvider(LoggingFeature.class))
+                    .buildManagedJerseyClient();
+
+            var configuration = client.getConfiguration();
+            assertThat(configuration.getClasses()).contains(MetricsFeature.class, LoggingFeature.class);
+        }
+
+        @Test
+        void shouldAllowChainingCustomizers() {
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .customize(builder -> builder.withProvider(MetricsFeature.class))
+                    .customize(builder -> builder.withProvider(LoggingFeature.class))
+                    .buildManagedJerseyClient();
+
+            var configuration = client.getConfiguration();
+            assertThat(configuration.getClasses()).contains(MetricsFeature.class, LoggingFeature.class);
+        }
+
+        @Test
+        void shouldUseCustomizerProperty_OverPreviouslySetValue_FromDirectlySetProperty() {
+            var customizerReadTimeout = 2_000;
+
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .property(ClientProperties.READ_TIMEOUT, 10_000)
+                    .customize(builder -> builder.withProperty(ClientProperties.READ_TIMEOUT, customizerReadTimeout))
+                    .buildManagedJerseyClient();
+
+            var configuration = client.getConfiguration();
+            var finalReadTimeout = configuration.getProperty(ClientProperties.READ_TIMEOUT);
+            assertThat(finalReadTimeout).isEqualTo(customizerReadTimeout);
+        }
+
+        @Test
+        void shouldUseCustomizerProperty_OverPreviouslySetValue_FromJerseyClientConfiguration() {
+            var jerseyClientConfiguration = new JerseyClientConfiguration();
+            jerseyClientConfiguration.setTimeout(Duration.seconds(10));
+
+            var customizerReadTimeout = 2_000;
+
+            client = new DropwizardManagedClientBuilder()
+                    .clientName(CLIENT_NAME)
+                    .environment(clientExtension.getEnvironment())
+                    .jerseyClientConfiguration(jerseyClientConfiguration)
+                    .customize(builder -> builder.withProperty(ClientProperties.READ_TIMEOUT, customizerReadTimeout))
+                    .buildManagedJerseyClient();
+
+            var configuration = client.getConfiguration();
+            var finalReadTimeout = configuration.getProperty(ClientProperties.READ_TIMEOUT);
+            assertThat(finalReadTimeout).isEqualTo(customizerReadTimeout);
+        }
+
+        @Test
+        void shouldWrapCustomizerException_WithIllegalStateException() {
+            assertThatIllegalStateException()
+                    .isThrownBy(() ->
+                            client = new DropwizardManagedClientBuilder()
+                                    .clientName(CLIENT_NAME)
+                                    .environment(clientExtension.getEnvironment())
+                                    .customize(builder -> {
+                                        throw new RuntimeException("problem customizing");
+                                    })
+                                    .buildManagedJerseyClient())
+                    .withMessage("Customizer failed while configuring JerseyClientBuilder for client " + CLIENT_NAME)
+                    .havingCause()
+                    .isExactlyInstanceOf(RuntimeException.class)
+                    .withMessage("problem customizing");
+        }
+
+        @Test
+        void shouldNotAllowNullCustomizer() {
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() -> new DropwizardManagedClientBuilder()
+                            .clientName(CLIENT_NAME)
+                            .environment(clientExtension.getEnvironment())
+                            .customize(null)
+                            .buildManagedJerseyClient())
+                    .withMessage("customizer must not be null");
         }
     }
 
