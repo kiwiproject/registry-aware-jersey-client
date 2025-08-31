@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
+import static org.kiwiproject.base.KiwiStrings.f;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -24,11 +25,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
  * Builder used for building either raw {@link Client} instances or {@link RegistryAwareClient}
- * instances that are fully managed by Dropwizard.
+ * instances that Dropwizard fully manages (i.e., calling start/stop).
+ * <p>
+ * This builder is single-use; calling any {@code build*} method finalizes the builder.
  * <p>
  * This requires {@code io.dropwizard:dropwizard-client} as a dependency.
  *
@@ -49,11 +54,15 @@ public class DropwizardManagedClientBuilder {
     private final Map<String, Object> properties;
     private final List<Class<?>> componentClasses;
     private final List<Object> components;
+    private final List<Consumer<JerseyClientBuilder>> customizers;
+    private final AtomicBoolean built;
 
     public DropwizardManagedClientBuilder() {
         properties = new LinkedHashMap<>();
         components = new ArrayList<>();
         componentClasses = new ArrayList<>();
+        customizers = new ArrayList<>();
+        built = new AtomicBoolean();
     }
 
     /**
@@ -128,10 +137,23 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Sets up the builder to OPT OUT of TLS configuration. While we think this shouldn't be done, we want to make sure
-     * we support it since Jersey does.
+     * Instructs this builder to omit TLS configuration when using a default
+     * {@link JerseyClientConfiguration}.
+     * <p>
+     * <strong>Important:</strong> This only has an effect if you do <em>not</em> supply a
+     * {@link JerseyClientConfiguration} via {@link #jerseyClientConfiguration(JerseyClientConfiguration)}.
+     * If a configuration is provided, this method does <em>not</em> modify or remove any TLS settings on it.
+     * <p>
+     * When no configuration is supplied, a default configuration is created via
+     * {@link #newDefaultJerseyClientConfiguration(org.kiwiproject.config.provider.TlsConfigProvider)},
+     * and calling {@code withoutTls()} ensures that default has no TLS configured (the TLS provider is ignored).
+     * <p>
+     * Disabling TLS is generally discouraged; prefer using proper TLS settings in production or untrusted networks.
+     * <p>
+     * While this is generally discouraged, this method exists to support parity with Jersey, which allows
+     * building clients without TLS.
      *
-     * @return this builder.
+     * @return this builder
      */
     public DropwizardManagedClientBuilder withoutTls() {
         this.tlsOptedOut = true;
@@ -211,6 +233,7 @@ public class DropwizardManagedClientBuilder {
      * Registers an instance of a component with the client builder.
      *
      * @param component The component to register
+     * @return this builder
      * @see JerseyClientBuilder#withProvider(Object)
      * @see jakarta.ws.rs.client.ClientBuilder#register(Object)
      */
@@ -221,12 +244,57 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
+     * Provides the ability to customize the {@link JerseyClientBuilder} that this builder
+     * uses when creating the final client instance.
+     * <p>
+     * Be careful when using this method, since callers could accidentally override existing
+     * configuration such as the {@link JerseyClientConfiguration}, {@link Environment},
+     * properties, or providers which were configured on this builder.
+     * <p>
+     * This method is intended to be used to provide additional configuration of the
+     * {@link JerseyClientBuilder}, for example, by calling the various {@code using} methods
+     * which are not exposed here such as {@link JerseyClientBuilder#using(javax.net.ssl.HostnameVerifier)} or
+     * {@link JerseyClientBuilder#using(org.apache.hc.client5.http.DnsResolver)}.
+     * <p>
+     * You can add multiple customizers, and they will execute in the order they were added.
+     * Customizers always run after the builder is otherwise fully configured. This means
+     * it is possible to override previously set configuration properties or providers (components or
+     * component classes), either by accident or intentionally. If the customizer sets a property or provider
+     * that was already configured, the customizer’s value takes effect.
+     * <p>
+     * If the customizer throws an exception, the {@code build} methods will throw an
+     * {@link IllegalStateException} that wraps the original cause. In addition, a throwing customizer
+     * short-circuits later customizers.
+     * <p>
+     * <em>Do not call {@code build} on the provided {@code JerseyClientBuilder}.</em>
+     * The Jersey client should be built by calling one of the {@code build} methods in this class.
+     *
+     * @param customizer a consumer that accepts a {@link JerseyClientBuilder}
+     * @return this builder
+     * @since 2.4.0
+     */
+    public DropwizardManagedClientBuilder customize(Consumer<JerseyClientBuilder> customizer) {
+        checkArgumentNotNull(customizer, "customizer must not be null");
+        customizers.add(customizer);
+        return this;
+    }
+
+    /**
      * Creates a new Dropwizard-managed {@link Client}.
+     * <p>
+     * Properties and providers are applied before customizers;
+     * customizers run immediately before building the {@link Client}.
+     * <p>
+     * This is a single-use build method. Calling this method more than once will
+     * result in an {@link IllegalStateException}.
      *
      * @return the newly created {@link Client} managed by Dropwizard
      * @throws IllegalStateException if {@code clientName} or {@code environment} is not specified
      */
     public Client buildManagedJerseyClient() {
+        checkState(built.compareAndSet(false, true),
+                "Client was already built using this builder. This is a single-use builder.");
+
         checkState(isNotBlank(clientName), "A name for the managed client must be specified");
         checkState(nonNull(environment), "Dropwizard environment must be provided to create managed client");
 
@@ -239,19 +307,73 @@ public class DropwizardManagedClientBuilder {
         properties.forEach(builder::withProperty);
         componentClasses.forEach(builder::withProvider);
         components.forEach(builder::withProvider);
+        applyJerseyClientBuilderCustomizers(builder);
         var client = builder.build(clientName);
 
-        AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
+        registerHeadersClientRequestFilter(client);
 
         return client;
     }
 
     /**
+     * Applies the list of customizers to the provided JerseyClientBuilder.
+     *
+     * @param builder the JerseyClientBuilder to which the customizers will be applied
+     */
+    private void applyJerseyClientBuilderCustomizers(JerseyClientBuilder builder) {
+        if (customizers.isEmpty()) {
+            return;
+        }
+
+        LOG.debug("Applying {} JerseyClientBuilder customizations", customizers.size());
+
+        var snapshot = List.copyOf(customizers);
+        for (int index = 0; index < snapshot.size(); index++) {
+            var customizer = snapshot.get(index);
+            applyCustomizer(builder, customizer, index);
+        }
+    }
+
+    /**
+     * Applies a single customizer to the given {@link JerseyClientBuilder}.
+     * Wraps any exception thrown by the customizer in an {@link IllegalStateException}
+     * that includes the 0-based index and client name for easier debugging.
+     *
+     * @param builder    The {@link JerseyClientBuilder} to customize; must not be null.
+     * @param customizer A {@link Consumer} that accepts the {@link JerseyClientBuilder} and performs
+     *                   the required customization; must not be null.
+     * @param index      The 0-based index of the customizer in the list of customizers; used for descriptive error messages.
+     * @throws IllegalStateException If the customizer throws an exception during execution, wrapping the original cause.
+     */
+    private void applyCustomizer(JerseyClientBuilder builder, Consumer<JerseyClientBuilder> customizer, int index) {
+        try {
+            customizer.accept(builder);
+        } catch (Exception e) {
+            var message = f(
+                    "Customizer at index {} (0-based) failed while configuring JerseyClientBuilder for client {}",
+                    index, clientName);
+            throw new IllegalStateException(message, e);
+        }
+    }
+
+    private void registerHeadersClientRequestFilter(Client client) {
+        var bothSet = nonNull(headersSupplier) && nonNull(headersMultivalueSupplier);
+        checkState(!bothSet, "Only one of headersSupplier or headersMultivalueSupplier may be set");
+
+        AddHeadersClientRequestFilter.createAndRegister(client, headersSupplier, headersMultivalueSupplier);
+    }
+
+    /**
      * Create a new Dropwizard-managed {@link RegistryAwareClient} with the same behavior as
      * {@link #buildManagedJerseyClient()} but also being registry-aware.
+     * <p>
+     * This is a single-use build method. Calling this method more than once will
+     * result in an {@link IllegalStateException}.
      *
      * @return the newly created {@link RegistryAwareClient} managed by Dropwizard
      * @throws IllegalStateException if clientName, environment, or registryClient is not specified
+     * @implNote This delegates to {@link #buildManagedJerseyClient()} to build the Jersey {@code Client}
+     * and then builds the {@link RegistryAwareClient}.
      */
     public RegistryAwareClient buildManagedRegistryAwareClient() {
         checkState(nonNull(registryClient), "Registry Client is required for a Registry Aware Client to be created");
