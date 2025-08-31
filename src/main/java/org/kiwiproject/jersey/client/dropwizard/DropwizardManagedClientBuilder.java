@@ -137,12 +137,23 @@ public class DropwizardManagedClientBuilder {
     }
 
     /**
-     * Sets up the builder to OPT OUT of TLS configuration. While we think this shouldn't be done, we want to make sure
-     * we support it since Jersey does.
+     * Instructs this builder to omit TLS configuration when using a default
+     * {@link JerseyClientConfiguration}.
      * <p>
-     * Note that this only applies when you supply your own {@link JerseyClientConfiguration}.
+     * <strong>Important:</strong> This only has an effect if you do <em>not</em> supply a
+     * {@link JerseyClientConfiguration} via {@link #jerseyClientConfiguration(JerseyClientConfiguration)}.
+     * If a configuration is provided, this method does <em>not</em> modify or remove any TLS settings on it.
+     * <p>
+     * When no configuration is supplied, a default configuration is created via
+     * {@link #newDefaultJerseyClientConfiguration(org.kiwiproject.config.provider.TlsConfigProvider)},
+     * and calling {@code withoutTls()} ensures that default has no TLS configured (the TLS provider is ignored).
+     * <p>
+     * Disabling TLS is generally discouraged; prefer using proper TLS settings in production or untrusted networks.
+     * <p>
+     * While this is generally discouraged, this method exists to support parity with Jersey, which allows
+     * building clients without TLS.
      *
-     * @return this builder.
+     * @return this builder
      */
     public DropwizardManagedClientBuilder withoutTls() {
         this.tlsOptedOut = true;
