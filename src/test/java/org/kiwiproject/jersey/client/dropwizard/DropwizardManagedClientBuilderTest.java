@@ -107,16 +107,17 @@ class DropwizardManagedClientBuilderTest {
     void setUp() {
         baseUri = CLIENT_EXTENSION.baseUri().toString() + "/test";
 
-        // Reset the metrics registry to avoid IllegalArgumentException with errors like:
-        //
-        // "A metric named org.apache.hc.client5.http.io.HttpClientConnectionManager.jersey-client.available-connections already exists"
-        //
-        // This is necessary because the Environment in the DropwizardClientExtension contains
-        // a MetricRegistry, which does not permit registering metrics with the same name.
-        //
         resetMetrics();
     }
 
+    /**
+     * Resets the metrics registry to avoid IllegalArgumentException with errors like:
+     * <p>
+     * "A metric named org.apache.hc.client5.http.io.HttpClientConnectionManager.jersey-client.available-connections already exists"
+     * <p>
+     * This is necessary because the Environment in the {@link DropwizardClientExtension} contains
+     * a {@link com.codahale.metrics.MetricRegistry}, which does not permit registering metrics with the same name.
+     */
     private static void resetMetrics() {
         var metrics = CLIENT_EXTENSION.getEnvironment().metrics();
         metrics.removeMatching(MetricFilter.ALL);
