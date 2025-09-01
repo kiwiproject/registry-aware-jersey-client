@@ -13,6 +13,7 @@ import static org.kiwiproject.jersey.client.util.JerseyTestHelpers.isFeatureRegi
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.Mockito.mock;
 
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.NoopMetricRegistry;
 import com.codahale.metrics.jersey3.MetricsFeature;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -100,21 +101,25 @@ class DropwizardManagedClientBuilderTest {
 
     private String baseUri;
 
-    //
-    // This field cannot be static. Making it static results in an java.lang.IllegalArgumentException in the tests
-    // which call buildManagedJerseyClient. It works the first time it is called, but all tests that call it
-    // afterward fail with the message:
-    //
-    // "A metric named org.apache.hc.client5.http.io.HttpClientConnectionManager.jersey-client.available-connections already exists"
-    //
-    // This is because, if the field is static, the MetricRegistry has already been created. Therefore, we need
-    // a fresh instance for each test, even though this slows the test down.
-    //
-    private final DropwizardClientExtension clientExtension = new DropwizardClientExtension(new TestResource());
+    private static final DropwizardClientExtension CLIENT_EXTENSION = new DropwizardClientExtension(new TestResource());
 
     @BeforeEach
     void setUp() {
-        baseUri = clientExtension.baseUri().toString() + "/test";
+        baseUri = CLIENT_EXTENSION.baseUri().toString() + "/test";
+
+        // Reset the metrics registry to avoid IllegalArgumentException with errors like:
+        //
+        // "A metric named org.apache.hc.client5.http.io.HttpClientConnectionManager.jersey-client.available-connections already exists"
+        //
+        // This is necessary because the Environment in the DropwizardClientExtension contains
+        // a MetricRegistry, which does not permit registering metrics with the same name.
+        //
+        resetMetrics();
+    }
+
+    private static void resetMetrics() {
+        var metrics = CLIENT_EXTENSION.getEnvironment().metrics();
+        metrics.removeMatching(MetricFilter.ALL);
     }
 
     @Nested
@@ -135,7 +140,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldThrowIllegalStateExceptionIfClientWasAlreadyBuilt() {
             var builder = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment());
+                    .environment(CLIENT_EXTENSION.getEnvironment());
 
             client = builder.buildManagedJerseyClient();
             assertThat(client).isNotNull();
@@ -168,7 +173,7 @@ class DropwizardManagedClientBuilderTest {
             assertThatIllegalStateException()
                     .isThrownBy(() -> new DropwizardManagedClientBuilder()
                             .clientName(CLIENT_NAME)
-                            .environment(clientExtension.getEnvironment())
+                            .environment(CLIENT_EXTENSION.getEnvironment())
                             .headersSupplier(Map::of)
                             .headersMultivalueSupplier(MultivaluedHashMap::new)
                             .buildManagedJerseyClient())
@@ -181,7 +186,7 @@ class DropwizardManagedClientBuilderTest {
 
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .jerseyClientConfiguration(config)
                     .buildManagedJerseyClient();
 
@@ -193,7 +198,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldSetupDefaultJerseyClientConfigurationIfNotGiven_IgnoringTLSIfOptedOut() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .withoutTls()
                     .buildManagedJerseyClient();
 
@@ -204,7 +209,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldSetupDefaultJerseyClientConfigurationIfNotGiven_IgnoringTLSIfConfigProviderNotGiven() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .buildManagedJerseyClient();
 
             assertThat(client).isInstanceOf(Client.class);
@@ -214,7 +219,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldSetupDefaultJerseyClientConfigurationIfNotGiven_IgnoringTLSIfConfigProviderCannotProvide() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .tlsConfigProvider(TlsConfigProvider.builder().build())
                     .buildManagedJerseyClient();
 
@@ -235,7 +240,7 @@ class DropwizardManagedClientBuilderTest {
 
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .tlsConfigProvider(tlsConfigProvider)
                     .buildManagedJerseyClient();
 
@@ -248,7 +253,7 @@ class DropwizardManagedClientBuilderTest {
                     .isThrownBy(() ->
                             new DropwizardManagedClientBuilder()
                                     .clientName(CLIENT_NAME)
-                                    .environment(clientExtension.getEnvironment())
+                                    .environment(CLIENT_EXTENSION.getEnvironment())
                                     .tlsContextConfiguration(null)
                                     .buildManagedJerseyClient())
                     .withMessage("tlsConfig must not be null");
@@ -264,7 +269,7 @@ class DropwizardManagedClientBuilderTest {
 
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .tlsContextConfiguration(tlsConfig)
                     .buildManagedJerseyClient();
 
@@ -275,7 +280,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldUseGivenHeadersSupplier() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .headersSupplier(() ->
                             Map.of(
                                     "Header-1", "Value-1",
@@ -298,7 +303,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldUseGivenHeadersMultivalueSupplier() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .headersMultivalueSupplier(() -> {
                         var headers = new MultivaluedHashMap<String, Object>();
                         headers.putSingle("Header-1", "Value-1");
@@ -322,7 +327,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldAddProperties() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .property(ClientProperties.CONNECT_TIMEOUT, 500)
                     .property(ClientProperties.READ_TIMEOUT, 750)
                     .property(ClientProperties.FOLLOW_REDIRECTS, false)
@@ -346,7 +351,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldRegisterComponentClasses() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .registerComponentClass(MetricsFeature.class)
                     .registerComponentClass(LoggingFeature.class)
                     .buildManagedJerseyClient();
@@ -363,7 +368,7 @@ class DropwizardManagedClientBuilderTest {
             var loggingFeature = new LoggingFeature();
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .registerComponent(metricsFeature)
                     .registerComponent(loggingFeature)
                     .buildManagedJerseyClient();
@@ -378,7 +383,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldApplyCustomizer() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .customize(builder -> builder
                             .withProvider(MetricsFeature.class)
                             .withProvider(LoggingFeature.class))
@@ -392,7 +397,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldAllowChainingCustomizers() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .customize(builder -> builder.withProvider(MetricsFeature.class))
                     .customize(builder -> builder.withProvider(LoggingFeature.class))
                     .buildManagedJerseyClient();
@@ -407,7 +412,7 @@ class DropwizardManagedClientBuilderTest {
 
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .property(ClientProperties.READ_TIMEOUT, 10_000)
                     .customize(builder -> builder.withProperty(ClientProperties.READ_TIMEOUT, customizerReadTimeout))
                     .buildManagedJerseyClient();
@@ -426,7 +431,7 @@ class DropwizardManagedClientBuilderTest {
 
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .jerseyClientConfiguration(jerseyClientConfiguration)
                     .customize(builder -> builder.withProperty(ClientProperties.READ_TIMEOUT, customizerReadTimeout))
                     .buildManagedJerseyClient();
@@ -441,7 +446,7 @@ class DropwizardManagedClientBuilderTest {
             assertThatIllegalStateException()
                     .isThrownBy(() -> new DropwizardManagedClientBuilder()
                             .clientName(CLIENT_NAME)
-                            .environment(clientExtension.getEnvironment())
+                            .environment(CLIENT_EXTENSION.getEnvironment())
                             .customize(KiwiConsumers.noOp())
                             .customize(KiwiConsumers.noOp())
                             .customize(builder -> {
@@ -461,7 +466,7 @@ class DropwizardManagedClientBuilderTest {
             assertThatIllegalStateException()
                     .isThrownBy(() -> new DropwizardManagedClientBuilder()
                             .clientName(CLIENT_NAME)
-                            .environment(clientExtension.getEnvironment())
+                            .environment(CLIENT_EXTENSION.getEnvironment())
                             .customize(builder -> {
                                 throw new RuntimeException("boom");
                             })
@@ -477,7 +482,7 @@ class DropwizardManagedClientBuilderTest {
             assertThatIllegalArgumentException()
                     .isThrownBy(() -> new DropwizardManagedClientBuilder()
                             .clientName(CLIENT_NAME)
-                            .environment(clientExtension.getEnvironment())
+                            .environment(CLIENT_EXTENSION.getEnvironment())
                             .customize(null)
                             .buildManagedJerseyClient())
                     .withMessage("customizer must not be null");
@@ -502,7 +507,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldThrowIllegalStateExceptionIfRegistryClientNotSet() {
             var builder = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment());
+                    .environment(CLIENT_EXTENSION.getEnvironment());
 
             assertThatThrownBy(builder::buildManagedRegistryAwareClient)
                     .isInstanceOf(IllegalStateException.class)
@@ -513,7 +518,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldBuildRegistryAwareClient() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .registryClient(mock(RegistryClient.class))
                     .buildManagedRegistryAwareClient();
 
@@ -525,7 +530,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldUseGivenHeadersSupplier() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .registryClient(mock(RegistryClient.class))
                     .headersSupplier(() -> Map.of(
                             "Header-A", "Value-A",
@@ -546,7 +551,7 @@ class DropwizardManagedClientBuilderTest {
         void shouldUseGivenHeadersMultivalueSupplier() {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
-                    .environment(clientExtension.getEnvironment())
+                    .environment(CLIENT_EXTENSION.getEnvironment())
                     .registryClient(mock(RegistryClient.class))
                     .headersMultivalueSupplier(() -> {
                         var headers = new MultivaluedHashMap<String, Object>();
