@@ -31,6 +31,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.junit.jupiter.api.AfterEach;
@@ -58,6 +59,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @DisplayName("DropwizardManagedClientBuilder")
 @ExtendWith(ResetLogbackLoggingExtension.class)
 @ExtendWith(DropwizardExtensionsSupport.class)
+@Slf4j
 class DropwizardManagedClientBuilderTest {
 
     private static final GenericType<Map<String, List<String>>> MAP_OF_STRING_TO_LIST_OF_STRING_TYPE =
@@ -100,12 +102,17 @@ class DropwizardManagedClientBuilderTest {
     }
 
     private String baseUri;
+    private JerseyClientConfiguration noGzipClientConfig;
 
     private static final DropwizardClientExtension CLIENT_EXTENSION = new DropwizardClientExtension(new TestResource());
 
     @BeforeEach
     void setUp() {
         baseUri = CLIENT_EXTENSION.baseUri().toString() + "/test";
+
+        noGzipClientConfig = new JerseyClientConfiguration();
+        noGzipClientConfig.setGzipEnabled(false);
+        noGzipClientConfig.setGzipEnabledForRequests(false);
 
         resetMetrics();
     }
@@ -282,6 +289,7 @@ class DropwizardManagedClientBuilderTest {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
                     .environment(CLIENT_EXTENSION.getEnvironment())
+                    .jerseyClientConfiguration(noGzipClientConfig)
                     .headersSupplier(() ->
                             Map.of(
                                     "Header-1", "Value-1",
@@ -305,6 +313,7 @@ class DropwizardManagedClientBuilderTest {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
                     .environment(CLIENT_EXTENSION.getEnvironment())
+                    .jerseyClientConfiguration(noGzipClientConfig)
                     .headersMultivalueSupplier(() -> {
                         var headers = new MultivaluedHashMap<String, Object>();
                         headers.putSingle("Header-1", "Value-1");
@@ -532,6 +541,7 @@ class DropwizardManagedClientBuilderTest {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
                     .environment(CLIENT_EXTENSION.getEnvironment())
+                    .jerseyClientConfiguration(noGzipClientConfig)
                     .registryClient(mock(RegistryClient.class))
                     .headersSupplier(() -> Map.of(
                             "Header-A", "Value-A",
@@ -553,6 +563,7 @@ class DropwizardManagedClientBuilderTest {
             client = new DropwizardManagedClientBuilder()
                     .clientName(CLIENT_NAME)
                     .environment(CLIENT_EXTENSION.getEnvironment())
+                    .jerseyClientConfiguration(noGzipClientConfig)
                     .registryClient(mock(RegistryClient.class))
                     .headersMultivalueSupplier(() -> {
                         var headers = new MultivaluedHashMap<String, Object>();
@@ -589,6 +600,11 @@ class DropwizardManagedClientBuilderTest {
                 .get();
 
         assertOkResponse(response);
+
+        // Tests rely on non-gzipped responses; Dropwizard test harness + Jetty 12.1.x
+        // may advertise gzip when not gzipped, which breaks entity decoding.
+        LOG.info("Echo response headers: {}", response.getHeaders());
+        assertThat(response.getHeaderString(HttpHeaders.CONTENT_ENCODING)).isNull();
 
         return response.readEntity(MAP_OF_STRING_TO_LIST_OF_STRING_TYPE);
     }
