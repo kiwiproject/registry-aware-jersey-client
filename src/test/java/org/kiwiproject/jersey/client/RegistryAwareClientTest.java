@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.entry;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -21,9 +20,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.kiwiproject.jaxrs.KiwiMultivaluedMaps;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port;
@@ -44,7 +40,6 @@ import org.kiwiproject.registry.model.ServicePaths;
 import org.kiwiproject.test.junit.jupiter.ResetLogbackLoggingExtension;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
@@ -102,37 +97,6 @@ class RegistryAwareClientTest {
         @Test
         void shouldNotBeClosedAfterCreation() {
             assertThat(registryAwareClient.isClosed()).isFalse();
-        }
-
-        @SuppressWarnings("deprecation")
-        @Test
-        void shouldSupplyHeaders_WhenSupplierProvided() {
-            var baseUri = CLIENT_EXTENSION.baseUri();
-            var instance = ServiceInstance.builder()
-                    .serviceName("foo-service")
-                    .hostName("localhost")
-                    .ports(List.of(
-                            Port.of(baseUri.getPort(), PortType.APPLICATION, Security.NOT_SECURE)
-                    ))
-                    .paths(ServicePaths.builder().homePagePath(baseUri.getPath()).build())
-                    .build();
-
-            when(registryClient.findServiceInstanceBy(any(RegistryClient.InstanceQuery.class)))
-                    .thenReturn(Optional.of(instance));
-
-            registryAwareClient = new RegistryAwareClient(client, registryClient,
-                    () -> Map.of("FOO-HEADER", "This-Is-Cool"));
-
-            var response = registryAwareClient.targetForService("foo-service")
-                    .path("/echoHeaders")
-                    .request()
-                    .get();
-
-            assertOkResponse(response);
-            var bodyMap = response.readEntity(new GenericType<MultivaluedHashMap<String, String>>() {
-            });
-            var headerMap = KiwiMultivaluedMaps.toSingleValuedParameterMap(bodyMap);
-            assertThat(headerMap).contains(entry("FOO-HEADER", "This-Is-Cool"));
         }
     }
 
