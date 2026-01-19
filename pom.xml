@@ -54,17 +54,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!--
-            TODO: This needs to be in kiwi-bom to ensure all Jetty versions align. For now, including it here.
-            -->
-            <dependency>
-                <groupId>org.eclipse.jetty.ee10</groupId>
-                <artifactId>jetty-ee10-bom</artifactId>
-                <version>12.1.5</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            
             <dependency>
                 <groupId>org.kiwiproject</groupId>
                 <artifactId>kiwi</artifactId>
