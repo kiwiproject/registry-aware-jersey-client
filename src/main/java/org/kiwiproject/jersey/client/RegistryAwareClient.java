@@ -1,6 +1,5 @@
 package org.kiwiproject.jersey.client;
 
-import static java.util.Objects.nonNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 
@@ -11,19 +10,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
-import org.kiwiproject.base.KiwiDeprecated;
 import org.kiwiproject.jersey.client.exception.MissingServiceRuntimeException;
-import org.kiwiproject.jersey.client.filter.AddHeadersClientRequestFilter;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * An extension of the JAX-RS {@link Client} interface that provides additional {@code target(...)} methods
@@ -48,43 +42,9 @@ public class RegistryAwareClient implements Client, AutoCloseable {
      * @param registryClient the registry lookup client
      */
     public RegistryAwareClient(Client client, RegistryClient registryClient) {
-        this(client, registryClient, null);
-    }
-
-    /**
-     * Creates a new {@link RegistryAwareClient} with the given {@link Client}, {@link RegistryClient}
-     * and {@link Supplier} that will be used to automatically attach request headers to <em>all</em> requests
-     * made by this client.
-     * <p>
-     * If {@code headersSupplier} is {@code null}, it is ignored.
-     * <p>
-     * As of 2.3.0, this constructor is deprecated <em>for removal</em> because it mutates the {@link Client} when
-     * a non-null {@code headersSupplier} is provided by registering a {@link AddHeadersClientRequestFilter}. Instead,
-     * use {@link #RegistryAwareClient(Client, RegistryClient)} and pass in a fully-configured {@link Client}.
-     * This avoids potential issues where a caller provides a {@link Client} but might not expect that client
-     * to be modified.
-     *
-     * @param client          the Jersey client to use
-     * @param registryClient  the registry lookup client
-     * @param headersSupplier a supplier of headers to attach to requests, may be {@code null}
-     * @deprecated use {@link #RegistryAwareClient(Client, RegistryClient)} and provide a fully-configured {@link Client}
-     */
-    @Deprecated(since = "2.3.0", forRemoval = true)
-    @KiwiDeprecated(
-        replacedBy = "#RegistryAwareClient(Client, RegistryClient)",
-        removeAt = "3.0.0",
-        reference = "https://github.com/kiwiproject/registry-aware-jersey-client/issues/400"
-    )
-    public RegistryAwareClient(Client client,
-                               RegistryClient registryClient,
-                               @Nullable Supplier<Map<String, Object>> headersSupplier) {
         this.client = requireNotNull(client, "client must not be null");
         this.registryClient = requireNotNull(registryClient, "registryClient must not be null");
         this.closed = new AtomicBoolean();
-
-        if (nonNull(headersSupplier)) {
-            this.client.register(AddHeadersClientRequestFilter.fromMapSupplier(headersSupplier));
-        }
     }
 
     /**
