@@ -254,7 +254,9 @@ class RegistryAwareClientBuilderTest {
     void shouldReplaceConfigurationState() {
         var existingBuilder = jakarta.ws.rs.client.ClientBuilder.newBuilder()
                 .property(ClientProperties.CONNECT_TIMEOUT, 1_000)
-                .property(ClientProperties.READ_TIMEOUT, 2_000);
+                .property(ClientProperties.READ_TIMEOUT, 2_000)
+                .property(ClientProperties.FOLLOW_REDIRECTS, false)
+                .property(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192);
 
         client = builder
                 .registryClient(registryClient)
@@ -264,7 +266,9 @@ class RegistryAwareClientBuilderTest {
         assertThat(client.getConfiguration().getProperties())
                 .contains(
                         entry(ClientProperties.CONNECT_TIMEOUT, 1_000),
-                        entry(ClientProperties.READ_TIMEOUT, 2_000)
+                        entry(ClientProperties.READ_TIMEOUT, 2_000),
+                        entry(ClientProperties.FOLLOW_REDIRECTS, false),
+                        entry(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192)
                 );
     }
 
