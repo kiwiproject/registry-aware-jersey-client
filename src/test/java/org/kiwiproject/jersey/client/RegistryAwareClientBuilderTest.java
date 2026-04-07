@@ -251,6 +251,62 @@ class RegistryAwareClientBuilderTest {
     }
 
     @Test
+    void shouldReplaceConfigurationState() {
+        var existingBuilder = jakarta.ws.rs.client.ClientBuilder.newBuilder()
+                .property(ClientProperties.CONNECT_TIMEOUT, 1_000)
+                .property(ClientProperties.READ_TIMEOUT, 2_000)
+                .property(ClientProperties.FOLLOW_REDIRECTS, false)
+                .property(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192);
+
+        client = builder
+                .registryClient(registryClient)
+                .withConfig(existingBuilder.getConfiguration())
+                .build();
+
+        assertThat(client.getConfiguration().getProperties())
+                .contains(
+                        entry(ClientProperties.CONNECT_TIMEOUT, 1_000),
+                        entry(ClientProperties.READ_TIMEOUT, 2_000),
+                        entry(ClientProperties.FOLLOW_REDIRECTS, false),
+                        entry(ClientProperties.CHUNKED_ENCODING_SIZE, 8_192)
+                );
+    }
+
+    @Test
+    void shouldReplaceAndDiscardPreviousProperties() {
+        client = builder
+                .registryClient(registryClient)
+                .property(ClientProperties.FOLLOW_REDIRECTS, false)
+                .withConfig(jakarta.ws.rs.client.ClientBuilder.newBuilder().getConfiguration())
+                .build();
+
+        assertThat(client.getConfiguration().getProperties())
+                .doesNotContainKey(ClientProperties.FOLLOW_REDIRECTS);
+    }
+
+    @Test
+    void shouldNotAffectSslContextOrHostnameVerifier() {
+        var path = getUnitTestKeyStorePath();
+        var sslContext = TlsContextConfiguration.builder()
+                .trustStorePath(path)
+                .trustStorePassword("password")
+                .build()
+                .toSSLContext();
+
+        var verifier = new NoopHostnameVerifier();
+
+        client = builder
+                .registryClient(registryClient)
+                .sslContext(sslContext)
+                .hostnameVerifier(verifier)
+                .withConfig(jakarta.ws.rs.client.ClientBuilder.newBuilder().getConfiguration())
+                .build();
+
+        assertThat(client.getSslContext()).isSameAs(sslContext);
+        assertThat(client.getHostnameVerifier()).isSameAs(verifier);
+    }
+
+    @Test
     void shouldRegisterComponentClasses() {
         client = builder
                 .registryClient(registryClient)

@@ -2,6 +2,7 @@ package org.kiwiproject.jersey.client;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import jakarta.ws.rs.core.Configuration;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.client.ClientProperties;
@@ -117,6 +118,12 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
             LOG.debug("TlsContextConfiguration conversion exception: ", e);
         }
 
+        return this;
+    }
+
+    @Override
+    public ClientBuilder withConfig(Configuration config) {
+        jerseyClientBuilder.withConfig(config);
         return this;
     }
 
