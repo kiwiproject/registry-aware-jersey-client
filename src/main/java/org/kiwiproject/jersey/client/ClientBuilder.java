@@ -1,5 +1,6 @@
 package org.kiwiproject.jersey.client;
 
+import jakarta.ws.rs.core.Configuration;
 import jakarta.ws.rs.core.MultivaluedMap;
 import org.kiwiproject.config.provider.TlsConfigProvider;
 import org.kiwiproject.registry.client.RegistryClient;
@@ -111,6 +112,22 @@ public interface ClientBuilder {
      * @return this builder
      */
     ClientBuilder tlsConfigProvider(TlsConfigProvider tlsConfigProvider);
+
+    /**
+     * Sets the internal configuration state to an externally provided configuration state.
+     * <p>
+     * <strong>Note:</strong> This replaces the entire configuration state of this builder,
+     * including any properties and registered components. Any properties or components
+     * previously set on this builder will be lost. However, SSL context and hostname
+     * verifier are not part of the JAX-RS {@link jakarta.ws.rs.core.Configuration} and
+     * are therefore unaffected by this call.
+     *
+     * @param config external configuration state to replace the configuration of this
+     *               builder; must not be null
+     * @return this builder
+     * @see jakarta.ws.rs.client.ClientBuilder#withConfig(Configuration)
+     */
+    ClientBuilder withConfig(Configuration config);
 
     /**
      * Sets a custom property on the client builder.
