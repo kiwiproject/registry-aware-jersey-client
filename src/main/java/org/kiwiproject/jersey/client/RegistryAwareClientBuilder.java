@@ -15,6 +15,7 @@ import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import java.security.KeyStore;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
@@ -95,6 +96,27 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
 
         sslContextWasSetOnThis = true;
 
+        return this;
+    }
+
+    @Override
+    public ClientBuilder keyStore(KeyStore keyStore, char[] password) {
+        jerseyClientBuilder.keyStore(keyStore, password);
+        sslContextWasSetOnThis = false;
+        return this;
+    }
+
+    @Override
+    public ClientBuilder keyStore(KeyStore keyStore, String password) {
+        jerseyClientBuilder.keyStore(keyStore, password);
+        sslContextWasSetOnThis = false;
+        return this;
+    }
+
+    @Override
+    public ClientBuilder trustStore(KeyStore trustStore) {
+        jerseyClientBuilder.trustStore(trustStore);
+        sslContextWasSetOnThis = false;
         return this;
     }
 

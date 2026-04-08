@@ -36,6 +36,8 @@ import org.kiwiproject.test.util.Fixtures;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
+import java.io.FileInputStream;
+import java.security.KeyStore;
 import java.util.List;
 import java.util.Map;
 
@@ -225,8 +227,119 @@ class RegistryAwareClientBuilderTest {
                 .isNotNull();
     }
 
-    private static String getUnitTestKeyStorePath() {
-        return Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
+    @Test
+    void shouldAcceptKeyStoreWithCharArrayPassword() throws Exception {
+        var keyStore = loadUnitTestKeyStore();
+
+        client = builder.registryClient(registryClient).keyStore(keyStore, "password".toCharArray()).build();
+
+        assertThat(client.getSslContext()).isNotNull();
+    }
+
+    @Test
+    void shouldAcceptKeyStoreWithStringPassword() throws Exception {
+        var keyStore = loadUnitTestKeyStore();
+
+        client = builder.registryClient(registryClient).keyStore(keyStore, "password").build();
+
+        assertThat(client.getSslContext()).isNotNull();
+    }
+
+    @Test
+    void shouldAcceptTrustStore() throws Exception {
+        var trustStore = loadUnitTestKeyStore();
+
+        client = builder.registryClient(registryClient).trustStore(trustStore).build();
+
+        assertThat(client.getSslContext()).isNotNull();
+    }
+
+    @Test
+    void shouldNotRetainSslContextWhenKeyStoreIsSetAfterSslContext() throws Exception {
+        var path = getUnitTestKeyStorePath();
+        var sslContext = TlsContextConfiguration.builder()
+                .trustStorePath(path)
+                .trustStorePassword("password")
+                .build()
+                .toSSLContext();
+
+        var keyStore = loadUnitTestKeyStore();
+
+        client = builder
+                .registryClient(registryClient)
+                .sslContext(sslContext)
+                .keyStore(keyStore, "password".toCharArray())
+                .build();
+
+        assertThat(client.getSslContext()).isNotSameAs(sslContext);
+    }
+
+    @Test
+    void shouldNotRetainSslContextWhenTrustStoreIsSetAfterSslContext() throws Exception {
+        var path = getUnitTestKeyStorePath();
+        var sslContext = TlsContextConfiguration.builder()
+                .trustStorePath(path)
+                .trustStorePassword("password")
+                .build()
+                .toSSLContext();
+
+        var trustStore = loadUnitTestKeyStore();
+
+        client = builder
+                .registryClient(registryClient)
+                .sslContext(sslContext)
+                .trustStore(trustStore)
+                .build();
+
+        assertThat(client.getSslContext()).isNotSameAs(sslContext);
+    }
+
+    @Test
+    void shouldUseSslContextWhenSetAfterKeyStore() throws Exception {
+        var path = getUnitTestKeyStorePath();
+        var sslContext = TlsContextConfiguration.builder()
+                .trustStorePath(path)
+                .trustStorePassword("password")
+                .build()
+                .toSSLContext();
+
+        var keyStore = loadUnitTestKeyStore();
+
+        client = builder
+                .registryClient(registryClient)
+                .keyStore(keyStore, "password".toCharArray())
+                .sslContext(sslContext)
+                .build();
+
+        assertThat(client.getSslContext()).isSameAs(sslContext);
+    }
+
+    @Test
+    void shouldUseSslContextWhenSetAfterTrustStore() throws Exception {
+        var path = getUnitTestKeyStorePath();
+        var sslContext = TlsContextConfiguration.builder()
+                .trustStorePath(path)
+                .trustStorePassword("password")
+                .build()
+                .toSSLContext();
+
+        var trustStore = loadUnitTestKeyStore();
+
+        client = builder
+                .registryClient(registryClient)
+                .trustStore(trustStore)
+                .sslContext(sslContext)
+                .build();
+
+        assertThat(client.getSslContext()).isSameAs(sslContext);
+    }
+
+    private static KeyStore loadUnitTestKeyStore() throws Exception {
+        var keyStore = KeyStore.getInstance("JKS");
+        try (var is = new FileInputStream(getUnitTestKeyStorePath())) {
+            keyStore.load(is, "password".toCharArray());
+        }
+        return keyStore;
     }
 
     @Test
@@ -304,6 +417,10 @@ class RegistryAwareClientBuilderTest {
 
         assertThat(client.getSslContext()).isSameAs(sslContext);
         assertThat(client.getHostnameVerifier()).isSameAs(verifier);
+    }
+
+    private static String getUnitTestKeyStorePath() {
+        return Fixtures.fixturePath("RegistryAwareClientBuilderTest/unitteststore.jks").toAbsolutePath().toString();
     }
 
     @Test

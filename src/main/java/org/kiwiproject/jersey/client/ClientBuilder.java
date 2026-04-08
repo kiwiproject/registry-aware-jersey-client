@@ -7,6 +7,7 @@ import org.kiwiproject.registry.client.RegistryClient;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import java.security.KeyStore;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -104,6 +105,53 @@ public interface ClientBuilder {
      * @return this builder
      */
     ClientBuilder sslContext(SSLContext sslContext);
+
+    /**
+     * Sets the client-side key store. Key store contains client's private keys and
+     * the certificates with their corresponding public keys.
+     * <p>
+     * <strong>Note:</strong> Setting a key store resets any SSL context previously
+     * set via {@link #sslContext(SSLContext)}.
+     * <p>
+     * Use this only if you need to enable 2-way SSL (client certificate authentication).
+     *
+     * @param keyStore the client-side key store; must not be null
+     * @param password the key store password as a char array
+     * @return this builder
+     * @see jakarta.ws.rs.client.ClientBuilder#keyStore(KeyStore, char[])
+     */
+    ClientBuilder keyStore(KeyStore keyStore, char[] password);
+
+    /**
+     * Sets the client-side key store. Key store contains client's private keys and
+     * the certificates with their corresponding public keys.
+     * <p>
+     * <strong>Note:</strong> Setting a key store resets any SSL context previously
+     * set via {@link #sslContext(SSLContext)}. For improved security, prefer
+     * {@link #keyStore(KeyStore, char[])} to avoid storing passwords in String objects.
+     * <p>
+     * Use this only if you need to enable 2-way SSL (client certificate authentication).
+     *
+     * @param keyStore the client-side key store; must not be null
+     * @param password the key store password as a String
+     * @return this builder
+     * @see jakarta.ws.rs.client.ClientBuilder#keyStore(KeyStore, String)
+     */
+    ClientBuilder keyStore(KeyStore keyStore, String password);
+
+    /**
+     * Sets the client-side trust store. The trust store is expected to contain
+     * certificates from parties the client expects to communicate with, or from
+     * Certificate Authorities trusted to identify those parties.
+     * <p>
+     * <strong>Note:</strong> Setting a trust store resets any SSL context previously
+     * set via {@link #sslContext(SSLContext)}.
+     *
+     * @param trustStore the client-side trust store; must not be null
+     * @return this builder
+     * @see jakarta.ws.rs.client.ClientBuilder#trustStore(KeyStore)
+     */
+    ClientBuilder trustStore(KeyStore trustStore);
 
     /**
      * Provides a {@link TlsConfigProvider} to use to provide TLS configuration.
