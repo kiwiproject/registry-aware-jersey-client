@@ -33,6 +33,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     private final JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder();
 
     private boolean sslContextWasSetOnThis;
+    private boolean keyOrTrustStoreWasSetOnThis;
     private boolean hostnameVerifierWasSetOnThis;
     private RegistryClient registryClient;
     private Supplier<Map<String, Object>> headersSupplier;
@@ -102,21 +103,21 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
     @Override
     public ClientBuilder keyStore(KeyStore keyStore, char[] password) {
         jerseyClientBuilder.keyStore(keyStore, password);
-        sslContextWasSetOnThis = false;
+        keyOrTrustStoreWasSetOnThis = true;
         return this;
     }
 
     @Override
     public ClientBuilder keyStore(KeyStore keyStore, String password) {
         jerseyClientBuilder.keyStore(keyStore, password);
-        sslContextWasSetOnThis = false;
+        keyOrTrustStoreWasSetOnThis = true;
         return this;
     }
 
     @Override
     public ClientBuilder trustStore(KeyStore trustStore) {
         jerseyClientBuilder.trustStore(trustStore);
-        sslContextWasSetOnThis = false;
+        keyOrTrustStoreWasSetOnThis = true;
         return this;
     }
 
@@ -186,7 +187,7 @@ public class RegistryAwareClientBuilder implements ClientBuilder {
         setReadTimeoutIfNotConfigured(configPropertyNames);
         setNoopHostNameVerifierIfNotSet();
 
-        if (!sslContextWasSetOnThis) {
+        if (!sslContextWasSetOnThis && !keyOrTrustStoreWasSetOnThis) {
             LOG.info(DEFAULT_TLS_INFO_MESSAGE);
         }
 
